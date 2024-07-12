@@ -1,14 +1,12 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/_includes.rs"));
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub mod spicedb {
+    pub use crate::generated::authzed::api::v1::*;
 }
+
+pub mod entity;
+pub mod grpc;
+pub mod permission;
+pub mod spicedb_ext;

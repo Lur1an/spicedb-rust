@@ -6,3 +6,23 @@ description = "A client for spicedb"
 license = "MIT"
 
 [dependencies]
+prost = "0.12.3"
+prost-types = "0.12.3"
+mockall = { version = "0.11.3", optional = true }
+tokio-stream = "0.1.15"
+tonic = "0.10.2"
+chrono = "0.4.31"
+uuid = "1.6.1"
+tonic-reflection = "0.10.2"
+anyhow = "1.0.86"
+
+[build-dependencies]
+tonic-build = "0.10.2"
+
+[features]
+default = []
+# mock = ["mockall"]
+
+[dev-dependencies]
+uuid = { version = "1.6.1", features = ["v4"]}
+tokio = { version = "1.38.0", features = ["rt", "macros"] }

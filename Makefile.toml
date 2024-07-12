@@ -1,0 +1,3 @@
+[tasks.spicedb-proto]
+command = "buf"
+args = [ "export", "buf.build/authzed/api", "--output", "./proto" ]
