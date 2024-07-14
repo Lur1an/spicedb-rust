@@ -92,8 +92,8 @@ where
         let zed_token = resp
             .deleted_at
             .ok_or_else(|| tonic::Status::internal("Invalid ZedToken"))?;
-        let deletion_progress = DeletionProgress::from_i32(resp.deletion_progress)
-            .ok_or_else(|| tonic::Status::internal("Invalid i32 value for DeletionProgress"))?;
+        let deletion_progress = DeletionProgress::try_from(resp.deletion_progress)
+            .map_err(|_| tonic::Status::internal("Invalid i32 value for DeletionProgress"))?;
         Ok((zed_token, deletion_progress))
     }
 }

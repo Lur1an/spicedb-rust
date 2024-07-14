@@ -1,5 +1,3 @@
-use anyhow::anyhow;
-use tonic::metadata::{Ascii, MetadataValue};
 
 use crate::grpc::BearerTokenInterceptor;
 
