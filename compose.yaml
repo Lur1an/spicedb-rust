@@ -1,6 +1,6 @@
 services:
   spicedb:
-    image: authzed/spicedb
+    image: authzed/spicedb:latest
     command: serve 
     environment:
       - "SPICEDB_GRPC_PRESHARED_KEY=randomkey"

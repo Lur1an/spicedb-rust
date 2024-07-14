@@ -20,8 +20,9 @@ anyhow = "1.0.86"
 tonic-build = "0.10.2"
 
 [features]
-default = []
-# mock = ["mockall"]
+default = ["permission", "schema"]
+schema = []
+permission = []
 
 [dev-dependencies]
 uuid = { version = "1.6.1", features = ["v4"]}

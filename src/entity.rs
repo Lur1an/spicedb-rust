@@ -16,7 +16,7 @@ pub trait Resource: Entity {
 }
 
 pub trait Permission {
-    fn name() -> &'static str;
+    fn name(&self) -> &'static str;
 }
 
 pub trait Caveat {
@@ -30,6 +30,14 @@ impl Caveat for NoCaveat {
     type ContextStruct = prost_types::Struct;
 
     fn name() -> &'static str {
+        unreachable!()
+    }
+}
+
+pub struct NoRelations;
+
+impl Relation for NoRelations {
+    fn name(&self) -> &'static str {
         unreachable!()
     }
 }

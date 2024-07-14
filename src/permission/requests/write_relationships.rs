@@ -1,5 +1,5 @@
 use crate::permission::PermissionServiceClient;
-use crate::spicedb::relationship_update::Operation;
+use crate::RelationshipOperation;
 use crate::{spicedb, Caveat, Relation, Resource, Subject};
 
 #[derive(Clone, Debug)]
@@ -19,7 +19,7 @@ impl WriteRelationshipsRequest {
 
     pub fn add_relationship<S, R>(
         &mut self,
-        operation: Operation,
+        operation: RelationshipOperation,
         subject_id: S::Id,
         subject_relation: Option<S::Relations>,
         resource_id: R::Id,
@@ -54,7 +54,7 @@ impl WriteRelationshipsRequest {
 
     pub fn add_caveated_relationship<S, R, C>(
         &mut self,
-        operation: Operation,
+        operation: RelationshipOperation,
         subject_id: S::Id,
         subject_relation: Option<S::Relations>,
         resource_id: R::Id,
