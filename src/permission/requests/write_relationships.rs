@@ -1,6 +1,6 @@
 use crate::permission::PermissionServiceClient;
 use crate::spicedb::relationship_update::Operation;
-use crate::{spicedb, Caveat, Entity, Relation, Resource, Subject};
+use crate::{spicedb, Caveat, Relation, Resource, Subject};
 
 #[derive(Clone, Debug)]
 pub struct WriteRelationshipsRequest {
