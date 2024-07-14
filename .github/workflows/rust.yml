@@ -47,7 +47,10 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Clippy lints
-        run: cargo clippy -- -D warnings
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          cargo clippy --all-targets -- -D warnings
 
   test:
     runs-on: ubuntu-latest
