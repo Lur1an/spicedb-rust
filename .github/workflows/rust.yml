@@ -31,8 +31,8 @@ jobs:
 
       - name: Build
         run: |
-          apt-get update
-          apt-get install -y protobuf-compiler
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
           cargo build --verbose
 
 
