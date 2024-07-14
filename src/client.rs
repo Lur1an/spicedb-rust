@@ -1,4 +1,3 @@
-
 use crate::grpc::BearerTokenInterceptor;
 
 #[derive(Clone, Debug)]
