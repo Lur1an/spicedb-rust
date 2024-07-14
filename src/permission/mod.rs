@@ -1,9 +1,8 @@
 mod requests;
 
 use self::requests::DeleteRelationshipsRequest;
-use crate::entity::{Relation, Resource};
+use crate::entity::{Resource};
 use crate::grpc_auth::AuthenticatedChannel;
-use crate::spicedb;
 use crate::spicedb::permissions_service_client::PermissionsServiceClient;
 use requests::WriteRelationshipsRequest;
 

@@ -1,9 +1,7 @@
 use self::spicedb::delete_relationships_response::DeletionProgress;
 use crate::entity::{Relation, Resource};
-use crate::grpc_auth::AuthenticatedChannel;
 use crate::permission::PermissionServiceClient;
 use crate::spicedb;
-use crate::spicedb::permissions_service_client::PermissionsServiceClient;
 
 #[derive(Clone, Debug)]
 pub struct DeleteRelationshipsRequest<R>
