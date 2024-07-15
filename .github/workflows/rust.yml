@@ -29,10 +29,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
+      - name: Install protobuf tooling
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
       - name: Build
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
           cargo build --verbose
 
 
@@ -46,10 +47,12 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
+
+      - name: Install protobuf tooling
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
       - name: Clippy lints
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
           cargo clippy --all-targets -- -D warnings
 
   test:
@@ -61,6 +64,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Install latest nextest release
         uses: taiki-e/install-action@nextest
+
+      - name: Install protobuf tooling
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
 
       - name: Start SpiceDB
         run: docker compose up -d
