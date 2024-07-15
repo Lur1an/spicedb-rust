@@ -74,4 +74,5 @@ async fn write_relationships() {
         "homework".to_owned(),
         DocumentRelation::Writer,
     );
+    request.send().await.unwrap();
 }
