@@ -2,6 +2,8 @@ use crate::permission::PermissionServiceClient;
 use crate::RelationshipOperation;
 use crate::{spicedb, Caveat, Relation, Resource, Subject};
 
+use self::spicedb::precondition::Operation;
+
 #[derive(Clone, Debug)]
 pub struct WriteRelationshipsRequest {
     client: PermissionServiceClient,
@@ -15,6 +17,30 @@ impl WriteRelationshipsRequest {
             optional_preconditions: vec![],
         };
         WriteRelationshipsRequest { client, request }
+    }
+
+    pub fn add_precondition<R>(
+        &mut self,
+        operation: Operation,
+        resource_id: Option<R::Id>,
+        resource_id_prefix: Option<String>,
+        relation: Option<R::Relations>,
+        subject_filter: Option<spicedb::SubjectFilter>,
+    ) -> &mut Self
+    where
+        R: Resource,
+    {
+        let precondition = spicedb::Precondition {
+            operation: operation as i32,
+            filter: Some(spicedb::relationship_filter::<R>(
+                resource_id,
+                resource_id_prefix,
+                relation,
+                subject_filter,
+            )),
+        };
+        self.request.optional_preconditions.push(precondition);
+        self
     }
 
     pub fn add_relationship<S, R>(
