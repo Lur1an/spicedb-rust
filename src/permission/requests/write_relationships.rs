@@ -30,15 +30,13 @@ impl WriteRelationshipsRequest {
     where
         R: Resource,
     {
-        let precondition = spicedb::Precondition {
-            operation: operation as i32,
-            filter: Some(spicedb::relationship_filter::<R>(
-                resource_id,
-                resource_id_prefix,
-                relation,
-                subject_filter,
-            )),
-        };
+        let precondition = spicedb::precondition::<R>(
+            operation,
+            resource_id,
+            resource_id_prefix,
+            relation,
+            subject_filter,
+        );
         self.request.optional_preconditions.push(precondition);
         self
     }

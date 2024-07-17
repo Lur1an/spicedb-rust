@@ -6,13 +6,14 @@ mod generated {
 mod client;
 mod entity;
 mod grpc;
+pub mod spicedb;
 
 #[cfg(feature = "permission")]
 mod permission;
+
 #[cfg(feature = "schema")]
 mod schema;
 
-pub mod spicedb;
 pub use client::*;
 pub use entity::*;
 pub use spicedb::relationship_update::Operation as RelationshipOperation;

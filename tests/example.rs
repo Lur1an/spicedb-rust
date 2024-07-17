@@ -18,8 +18,11 @@ impl Subject for User {}
 
 pub struct Document;
 
+#[derive(strum::EnumString)]
 pub enum DocumentPermission {
+    #[strum(serialize = "read")]
     Read,
+    #[strum(serialize = "write")]
     Write,
 }
 
@@ -41,8 +44,11 @@ impl Entity for Document {
     }
 }
 
+#[derive(strum::EnumString)]
 pub enum DocumentRelation {
+    #[strum(serialize = "reader")]
     Reader,
+    #[strum(serialize = "writer")]
     Writer,
 }
 

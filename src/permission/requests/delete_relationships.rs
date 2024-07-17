@@ -1,4 +1,5 @@
 use self::spicedb::delete_relationships_response::DeletionProgress;
+use self::spicedb::precondition::Operation;
 use crate::entity::{Relation, Resource};
 use crate::permission::PermissionServiceClient;
 use crate::spicedb;
@@ -22,6 +23,7 @@ where
             client,
             request: spicedb::DeleteRelationshipsRequest {
                 relationship_filter: Some(spicedb::RelationshipFilter {
+                    resource_type: R::object_type().into(),
                     ..Default::default()
                 }),
                 optional_preconditions: vec![],
@@ -32,6 +34,29 @@ where
         }
     }
 
+    pub fn add_precondition<R2>(
+        &mut self,
+        operation: Operation,
+        resource_id: Option<R2::Id>,
+        resource_id_prefix: Option<String>,
+        relation: Option<R2::Relations>,
+        subject_filter: Option<spicedb::SubjectFilter>,
+    ) -> &mut Self
+    where
+        R2: Resource,
+    {
+        self.request
+            .optional_preconditions
+            .push(spicedb::precondition::<R2>(
+                operation,
+                resource_id,
+                resource_id_prefix,
+                relation,
+                subject_filter,
+            ));
+        self
+    }
+
     pub fn with_id(&mut self, resource_id: R::Id) -> &mut Self {
         match self.request.relationship_filter.as_mut() {
             Some(rf) => resource_id.into().clone_into(&mut rf.optional_resource_id),
@@ -40,9 +65,11 @@ where
         self
     }
 
-    pub fn with_id_prefix(&mut self, id_prefix: String) -> &mut Self {
+    pub fn with_id_prefix(&mut self, id_prefix: impl Into<String>) -> &mut Self {
         match self.request.relationship_filter.as_mut() {
-            Some(rf) => id_prefix.clone_into(&mut rf.optional_resource_id_prefix),
+            Some(rf) => id_prefix
+                .into()
+                .clone_into(&mut rf.optional_resource_id_prefix),
             None => unreachable!(),
         }
         self

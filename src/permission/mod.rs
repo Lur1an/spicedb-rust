@@ -17,6 +17,11 @@ impl PermissionServiceClient {
         let inner = PermissionsServiceClient::with_interceptor(channel, interceptor);
         PermissionServiceClient { inner }
     }
+
+    pub fn raw(&self) -> PermissionsServiceClient<AuthenticatedChannel> {
+        self.inner.clone()
+    }
+
     pub fn create_relationships(&self) -> WriteRelationshipsRequest {
         WriteRelationshipsRequest::new(self.clone())
     }

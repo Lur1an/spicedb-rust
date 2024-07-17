@@ -1,11 +1,13 @@
+use std::str::FromStr;
+
 pub trait Entity {
     type Relations: Relation;
-    type Id: TryFrom<String> + Into<String>;
+    type Id: FromStr + Into<String>;
 
     fn object_type() -> &'static str;
 }
 
-pub trait Relation {
+pub trait Relation: FromStr {
     fn name(&self) -> &'static str;
 }
 
@@ -24,6 +26,11 @@ pub trait Caveat {
     fn name() -> &'static str;
 }
 
+pub trait Actor {
+    fn object_type(&self) -> &'static str;
+    fn id(&self) -> String;
+}
+
 pub struct NoCaveat;
 
 impl Caveat for NoCaveat {
@@ -38,6 +45,14 @@ pub struct NoRelations;
 
 impl Relation for NoRelations {
     fn name(&self) -> &'static str {
+        unreachable!()
+    }
+}
+
+impl FromStr for NoRelations {
+    type Err = ();
+
+    fn from_str(_: &str) -> Result<Self, Self::Err> {
         unreachable!()
     }
 }

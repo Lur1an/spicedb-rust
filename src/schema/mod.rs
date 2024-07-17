@@ -19,6 +19,11 @@ impl Client {
         let inner = SchemaServiceClient::with_interceptor(channel, interceptor);
         Client { inner }
     }
+
+    pub fn raw(&self) -> SchemaServiceClient<AuthenticatedChannel> {
+        self.inner.clone()
+    }
+
     pub async fn write_schema(
         &self,
         schema: impl Into<String>,
