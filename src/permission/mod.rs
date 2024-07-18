@@ -7,6 +7,7 @@ use self::requests::{
 use crate::entity::Resource;
 use crate::grpc::{AuthenticatedChannel, BearerTokenInterceptor, GrpcResult};
 use crate::spicedb::permissions_service_client::PermissionsServiceClient;
+use crate::spicedb::wrappers::Consistency;
 use crate::spicedb::{self, object_reference};
 use crate::{Actor, Permission};
 use tonic::transport::Channel;
@@ -52,6 +53,8 @@ impl PermissionServiceClient {
         LookupResourcesRequest::new(self.clone())
     }
 
+    /// Shortcut for the most common use case of looking up resources, to quickly collect all ID's
+    /// returned in one call.
     pub async fn lookup_resources<R>(
         &self,
         actor: &impl Actor,
@@ -63,7 +66,23 @@ impl PermissionServiceClient {
         let mut request = self.lookup_resources_request::<R>();
         request.permission(permission);
         request.actor(actor);
-        request.collect_ids().await
+        request.send_collect_ids().await
+    }
+
+    pub async fn lookup_resources_at<R>(
+        &self,
+        actor: &impl Actor,
+        permission: R::Permissions,
+        token: spicedb::ZedToken,
+    ) -> GrpcResult<Vec<R::Id>>
+    where
+        R: Resource,
+    {
+        let mut request = self.lookup_resources_request::<R>();
+        request.permission(permission);
+        request.actor(actor);
+        request.with_consistency(Consistency::AtLeastAsFresh(token));
+        request.send_collect_ids().await
     }
 
     /// Shortcut for the most common use case of checking a permission for an actor in the system
@@ -100,7 +119,7 @@ impl PermissionServiceClient {
         request.subject(actor.to_subject());
         request.resource(object_reference::<R>(resource_id.into()));
         request.permission(permission.name());
-        request.consistency(spicedb::wrappers::Consistency::AtLeastAsFresh(token));
+        request.consistency(Consistency::AtLeastAsFresh(token));
         let resp = request.send().await?;
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)

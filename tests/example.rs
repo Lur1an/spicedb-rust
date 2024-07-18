@@ -2,11 +2,11 @@ use pretty_assertions::assert_eq;
 use spicedb_rust::spicedb::{subject_reference_raw, SubjectReference};
 use spicedb_rust::{
     Actor, Entity, NoRelations, Permission, Relation, RelationshipOperation, Resource,
-    SpiceDBClient, Subject,
+    SpiceDBClient,
 };
 use uuid::Uuid;
 
-pub struct User(Uuid);
+struct User(Uuid);
 
 impl User {
     pub fn new(id: Uuid) -> Self {
@@ -23,15 +23,13 @@ impl Entity for User {
     }
 }
 
-impl Subject for User {}
-
 impl Actor for User {
     fn to_subject(&self) -> SubjectReference {
         subject_reference_raw(self.0, User::object_type(), None::<String>)
     }
 }
 
-pub struct Document;
+struct Document;
 
 pub enum DocumentPermission {
     Read,
@@ -91,19 +89,23 @@ async fn example() {
         "homework",
         DocumentRelation::Writer,
     );
-    request.add_relationship::<User, Document>(
+    request.add_wildcard_relationship::<User, Document>(
         RelationshipOperation::Touch,
-        user_id,
-        None,
         "manga",
         DocumentRelation::Reader,
     );
+
     let token = request.send().await.unwrap();
 
     let actor = User::new(user_id);
     let authorized = client
         .permission_client()
-        .check_permission_at::<Document>(&actor, "homework", DocumentPermission::Write, token)
+        .check_permission_at::<Document>(
+            &actor,
+            "homework",
+            DocumentPermission::Write,
+            token.clone(),
+        )
         .await
         .unwrap();
     assert!(
@@ -111,10 +113,25 @@ async fn example() {
         "User should be authorized to write the document"
     );
 
-    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    let random_user_actor = User::new(Uuid::now_v7());
+    let authorized = client
+        .permission_client()
+        .check_permission_at::<Document>(
+            &random_user_actor,
+            "manga",
+            DocumentPermission::Read,
+            token.clone(),
+        )
+        .await
+        .unwrap();
+    assert!(
+        authorized,
+        "Random user should be authorized to read `manga` due to wildcard"
+    );
+
     let mut resource_ids = client
         .permission_client()
-        .lookup_resources::<Document>(&actor, DocumentPermission::Read)
+        .lookup_resources_at::<Document>(&actor, DocumentPermission::Read, token)
         .await
         .unwrap();
     let mut expected = vec!["homework", "manga"];

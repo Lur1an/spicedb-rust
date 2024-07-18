@@ -17,8 +17,6 @@ pub trait Relation {
     fn name(&self) -> &'static str;
 }
 
-pub trait Subject: Entity {}
-
 /// A resource is any `Entity` that also has `Permissions` associated
 pub trait Resource: Entity {
     type Permissions: Permission;
@@ -57,6 +55,8 @@ impl Caveat for NoCaveat {
     }
 }
 
+/// Use this time for `Relations` when implementing `Entity` for something that will never have a
+/// any relation to.
 pub struct NoRelations;
 
 impl Relation for NoRelations {
@@ -70,5 +70,38 @@ impl FromStr for NoRelations {
 
     fn from_str(_: &str) -> Result<Self, Self::Err> {
         unreachable!()
+    }
+}
+
+/// Use this type to build your wildcard entity types.
+/// Often there already are wildcard shortcuts like `add_wildcard_relationship` in the
+/// `write_relationships_request` builder that can be used instead of this.
+/// However for more niche usecases where you need to pass in a WildCard user for an entity in an
+/// operation that currently doesn't have a shortcut, this can be implemented and used.
+/// ```rust
+/// pub struct WildCardUser;
+///
+/// impl Entity for WildCardUser {
+///     type Id = WildCardId;
+///     type Relations = NoRelations;
+///
+///     fn object_type() -> &'static str {
+///         User::object_type()
+///     }
+/// }
+/// ```
+pub struct WildCardId;
+
+impl FromStr for WildCardId {
+    type Err = ();
+
+    fn from_str(_: &str) -> Result<Self, Self::Err> {
+        unreachable!()
+    }
+}
+
+impl From<WildCardId> for String {
+    fn from(_: WildCardId) -> Self {
+        "*".into()
     }
 }

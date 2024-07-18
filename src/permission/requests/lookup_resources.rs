@@ -1,8 +1,9 @@
+use futures::TryStreamExt;
 use tokio_stream::{Stream, StreamExt};
 
 use crate::grpc::GrpcResult;
 use crate::permission::PermissionServiceClient;
-use crate::spicedb::wrappers::LookupResourcesResponse;
+use crate::spicedb::wrappers::{Consistency, LookupResourcesResponse};
 use crate::{spicedb, Actor, Permission, Resource};
 
 #[derive(Clone, Debug)]
@@ -48,6 +49,11 @@ where
         self
     }
 
+    pub fn with_consistency(&mut self, consistency: Consistency) -> &mut Self {
+        self.request.consistency = Some(consistency.into());
+        self
+    }
+
     pub fn with_limit(&mut self, limit: u32) -> &mut Self {
         self.request.optional_limit = limit;
         self
@@ -59,14 +65,12 @@ where
     }
 
     /// Sends the request and collects all the IDs from the response objects
-    pub async fn collect_ids(self) -> GrpcResult<Vec<R::Id>> {
-        let mut ids = vec![];
-        let mut resp = self.send_stream().await?;
-        while let Some(resp) = resp.next().await {
-            let resp = resp?;
-            ids.push(resp.id);
-        }
-        Ok(ids)
+    pub async fn send_collect_ids(self) -> GrpcResult<Vec<R::Id>> {
+        self.send_stream()
+            .await?
+            .map(|resp| resp.map(|r| r.id))
+            .try_collect()
+            .await
     }
 
     pub async fn send_stream(

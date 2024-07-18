@@ -1,6 +1,6 @@
 use crate::permission::PermissionServiceClient;
-use crate::{spicedb, Caveat, Relation, Resource, Subject};
-use crate::{Entity, RelationshipOperation};
+use crate::spicedb::{object_reference, subject_reference, subject_reference_raw};
+use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource, WildCardId};
 
 use self::spicedb::precondition::Operation;
 use self::spicedb::Precondition;
@@ -33,7 +33,6 @@ impl WriteRelationshipsRequest {
     pub fn add_precondition<R>(
         &mut self,
         operation: Operation,
-        // no Into type for resource_id otherwise it would need to be specified every time we pass in `None`
         resource_id: Option<R::Id>,
         resource_id_prefix: Option<String>,
         relation: Option<R::Relations>,
@@ -53,6 +52,30 @@ impl WriteRelationshipsRequest {
         self
     }
 
+    pub fn add_wildcard_relationship<S, R>(
+        &mut self,
+        operation: RelationshipOperation,
+        resource_id: impl Into<R::Id>,
+        relation: R::Relations,
+    ) -> &mut Self
+    where
+        S: Entity,
+        R: Resource,
+    {
+        let subject = subject_reference_raw(WildCardId, S::object_type(), None::<String>);
+        let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+        self.request.updates.push(spicedb::RelationshipUpdate {
+            operation: operation as i32,
+            relationship: Some(spicedb::Relationship {
+                resource: Some(resource),
+                relation: relation.name().to_owned(),
+                subject: Some(subject),
+                optional_caveat: None,
+            }),
+        });
+        self
+    }
+
     pub fn add_relationship<S, R>(
         &mut self,
         operation: RelationshipOperation,
@@ -62,26 +85,17 @@ impl WriteRelationshipsRequest {
         relation: R::Relations,
     ) -> &mut Self
     where
-        S: Subject,
+        S: Entity,
         R: Resource,
     {
+        let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
+        let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
         self.request.updates.push(spicedb::RelationshipUpdate {
             operation: operation as i32,
             relationship: Some(spicedb::Relationship {
-                resource: Some(spicedb::ObjectReference {
-                    object_type: R::object_type().to_owned(),
-                    object_id: Into::<R::Id>::into(resource_id).into(),
-                }),
+                resource: Some(resource),
                 relation: relation.name().to_owned(),
-                subject: Some(spicedb::SubjectReference {
-                    object: Some(spicedb::ObjectReference {
-                        object_type: S::object_type().to_owned(),
-                        object_id: Into::<S::Id>::into(subject_id).into(),
-                    }),
-                    optional_relation: subject_relation
-                        .map(|r| r.name().to_owned())
-                        .unwrap_or_default(),
-                }),
+                subject: Some(subject),
                 optional_caveat: None,
             }),
         });
@@ -98,27 +112,18 @@ impl WriteRelationshipsRequest {
         caveat_context: C::ContextStruct,
     ) -> &mut Self
     where
-        S: Subject,
+        S: Entity,
         R: Resource,
         C: Caveat,
     {
+        let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
+        let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
         self.request.updates.push(spicedb::RelationshipUpdate {
             operation: operation as i32,
             relationship: Some(spicedb::Relationship {
-                resource: Some(spicedb::ObjectReference {
-                    object_type: R::object_type().to_owned(),
-                    object_id: Into::<R::Id>::into(resource_id).into(),
-                }),
+                resource: Some(resource),
                 relation: relation.name().to_owned(),
-                subject: Some(spicedb::SubjectReference {
-                    object: Some(spicedb::ObjectReference {
-                        object_type: S::object_type().to_owned(),
-                        object_id: Into::<S::Id>::into(subject_id).into(),
-                    }),
-                    optional_relation: subject_relation
-                        .map(|r| r.name().to_owned())
-                        .unwrap_or_default(),
-                }),
+                subject: Some(subject),
                 optional_caveat: Some(spicedb::ContextualizedCaveat {
                     caveat_name: C::name().to_owned(),
                     context: Some(caveat_context.into()),

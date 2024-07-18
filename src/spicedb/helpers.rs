@@ -1,11 +1,11 @@
-use crate::{Entity, Relation, Resource, Subject};
+use crate::{Entity, Relation, Resource};
 
 use super::subject_filter::RelationFilter;
 use super::{ObjectReference, Precondition, RelationshipFilter, SubjectFilter, SubjectReference};
 
 pub fn subject_filter<S>(id: Option<S::Id>, relation: Option<S::Relations>) -> SubjectFilter
 where
-    S: Subject,
+    S: Entity,
 {
     subject_filter_raw(S::object_type(), id, relation.map(|r| r.name()))
 }
@@ -98,7 +98,7 @@ pub fn precondition_raw(
 
 pub fn subject_reference<S>(id: S::Id, relation: Option<S::Relations>) -> SubjectReference
 where
-    S: Subject,
+    S: Entity,
 {
     subject_reference_raw(id, S::object_type(), relation.map(|r| r.name()))
 }
