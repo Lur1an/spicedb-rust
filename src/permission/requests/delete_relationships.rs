@@ -57,9 +57,11 @@ where
         self
     }
 
-    pub fn with_id(&mut self, resource_id: R::Id) -> &mut Self {
+    pub fn with_id(&mut self, resource_id: impl Into<R::Id>) -> &mut Self {
         match self.request.relationship_filter.as_mut() {
-            Some(rf) => resource_id.into().clone_into(&mut rf.optional_resource_id),
+            Some(rf) => Into::<R::Id>::into(resource_id)
+                .into()
+                .clone_into(&mut rf.optional_resource_id),
             None => unreachable!(),
         }
         self
@@ -88,7 +90,7 @@ where
         self
     }
 
-    pub fn with_limit(&mut self, limit: u32) -> &mut Self {
+    pub fn limit(&mut self, limit: u32) -> &mut Self {
         self.request.optional_limit = limit;
         self
     }

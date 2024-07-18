@@ -25,6 +25,7 @@ schema = []
 permission = []
 
 [dev-dependencies]
-uuid = { version = "1.6.1", features = ["v4"]}
+uuid = { version = "1.10.0", features = ["v4", "v7"] }
 tokio = { version = "1.38.0", features = ["rt", "macros"] }
 strum = { version = "0.26.3", features = ["derive", "strum_macros"] }
+pretty_assertions = "1.4.0"

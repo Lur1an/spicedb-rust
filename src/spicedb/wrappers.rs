@@ -1,4 +1,5 @@
 use super::consistency::Requirement;
+use super::LookupPermissionship;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Consistency {
@@ -77,4 +78,12 @@ impl From<super::ReadRelationshipsResponse> for ReadRelationshipsResponse {
             after_result_cursor: resp.after_result_cursor,
         }
     }
+}
+
+pub struct LookupResourcesResponse<Id> {
+    pub id: Id,
+    pub looked_up_at: Option<super::ZedToken>,
+    pub permissionship: LookupPermissionship,
+    pub missing_caveats: Vec<String>,
+    pub after_result_cursor: Option<super::Cursor>,
 }

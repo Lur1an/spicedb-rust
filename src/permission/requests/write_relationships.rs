@@ -1,6 +1,6 @@
 use crate::permission::PermissionServiceClient;
-use crate::RelationshipOperation;
 use crate::{spicedb, Caveat, Relation, Resource, Subject};
+use crate::{Entity, RelationshipOperation};
 
 use self::spicedb::precondition::Operation;
 use self::spicedb::Precondition;
@@ -33,6 +33,7 @@ impl WriteRelationshipsRequest {
     pub fn add_precondition<R>(
         &mut self,
         operation: Operation,
+        // no Into type for resource_id otherwise it would need to be specified every time we pass in `None`
         resource_id: Option<R::Id>,
         resource_id_prefix: Option<String>,
         relation: Option<R::Relations>,
@@ -55,9 +56,9 @@ impl WriteRelationshipsRequest {
     pub fn add_relationship<S, R>(
         &mut self,
         operation: RelationshipOperation,
-        subject_id: S::Id,
+        subject_id: impl Into<S::Id>,
         subject_relation: Option<S::Relations>,
-        resource_id: R::Id,
+        resource_id: impl Into<R::Id>,
         relation: R::Relations,
     ) -> &mut Self
     where
@@ -69,13 +70,13 @@ impl WriteRelationshipsRequest {
             relationship: Some(spicedb::Relationship {
                 resource: Some(spicedb::ObjectReference {
                     object_type: R::object_type().to_owned(),
-                    object_id: resource_id.into(),
+                    object_id: Into::<R::Id>::into(resource_id).into(),
                 }),
                 relation: relation.name().to_owned(),
                 subject: Some(spicedb::SubjectReference {
                     object: Some(spicedb::ObjectReference {
                         object_type: S::object_type().to_owned(),
-                        object_id: subject_id.into(),
+                        object_id: Into::<S::Id>::into(subject_id).into(),
                     }),
                     optional_relation: subject_relation
                         .map(|r| r.name().to_owned())
@@ -90,9 +91,9 @@ impl WriteRelationshipsRequest {
     pub fn add_caveated_relationship<S, R, C>(
         &mut self,
         operation: RelationshipOperation,
-        subject_id: S::Id,
+        subject_id: impl Into<S::Id>,
         subject_relation: Option<S::Relations>,
-        resource_id: R::Id,
+        resource_id: impl Into<R::Id>,
         relation: R::Relations,
         caveat_context: C::ContextStruct,
     ) -> &mut Self
@@ -106,13 +107,13 @@ impl WriteRelationshipsRequest {
             relationship: Some(spicedb::Relationship {
                 resource: Some(spicedb::ObjectReference {
                     object_type: R::object_type().to_owned(),
-                    object_id: resource_id.into(),
+                    object_id: Into::<R::Id>::into(resource_id).into(),
                 }),
                 relation: relation.name().to_owned(),
                 subject: Some(spicedb::SubjectReference {
                     object: Some(spicedb::ObjectReference {
                         object_type: S::object_type().to_owned(),
-                        object_id: subject_id.into(),
+                        object_id: Into::<S::Id>::into(subject_id).into(),
                     }),
                     optional_relation: subject_relation
                         .map(|r| r.name().to_owned())

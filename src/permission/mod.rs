@@ -1,8 +1,8 @@
 mod requests;
 
 use self::requests::{
-    CheckPermissionRequest, DeleteRelationshipsRequest, ReadRelationshipsRequest,
-    WriteRelationshipsRequest,
+    CheckPermissionRequest, DeleteRelationshipsRequest, LookupResourcesRequest,
+    ReadRelationshipsRequest, WriteRelationshipsRequest,
 };
 use crate::entity::Resource;
 use crate::grpc::{AuthenticatedChannel, BearerTokenInterceptor, GrpcResult};
@@ -45,21 +45,42 @@ impl PermissionServiceClient {
         CheckPermissionRequest::new(self.clone())
     }
 
+    pub fn lookup_resources_request<R>(&self) -> LookupResourcesRequest<R>
+    where
+        R: Resource,
+    {
+        LookupResourcesRequest::new(self.clone())
+    }
+
+    pub async fn lookup_resources<R>(
+        &self,
+        actor: &impl Actor,
+        permission: R::Permissions,
+    ) -> GrpcResult<Vec<R::Id>>
+    where
+        R: Resource,
+    {
+        let mut request = self.lookup_resources_request::<R>();
+        request.permission(permission);
+        request.actor(actor);
+        request.collect_ids().await
+    }
+
     /// Shortcut for the most common use case of checking a permission for an actor in the system
-    /// on a specific resource.
+    /// on a specific resource `R` with default consistency.
     pub async fn check_permission<R>(
         &self,
         actor: &impl Actor,
-        resource_id: R::Id,
+        resource_id: impl Into<R::Id>,
         permission: R::Permissions,
     ) -> GrpcResult<bool>
     where
         R: Resource,
     {
         let mut request = self.check_permission_request();
-        request.with_subject(actor.to_subject());
-        request.with_resource(object_reference::<R>(resource_id));
-        request.with_permission(permission.name());
+        request.subject(actor.to_subject());
+        request.resource(object_reference::<R>(resource_id.into()));
+        request.permission(permission.name());
         let resp = request.send().await?;
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
@@ -68,7 +89,7 @@ impl PermissionServiceClient {
     pub async fn check_permission_at<R>(
         &self,
         actor: &impl Actor,
-        resource_id: R::Id,
+        resource_id: impl Into<R::Id>,
         permission: R::Permissions,
         token: spicedb::ZedToken,
     ) -> GrpcResult<bool>
@@ -76,10 +97,10 @@ impl PermissionServiceClient {
         R: Resource,
     {
         let mut request = self.check_permission_request();
-        request.with_subject(actor.to_subject());
-        request.with_resource(object_reference::<R>(resource_id));
-        request.with_permission(permission.name());
-        request.with_consistency(spicedb::wrappers::Consistency::AtLeastAsFresh(token));
+        request.subject(actor.to_subject());
+        request.resource(object_reference::<R>(resource_id.into()));
+        request.permission(permission.name());
+        request.consistency(spicedb::wrappers::Consistency::AtLeastAsFresh(token));
         let resp = request.send().await?;
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
