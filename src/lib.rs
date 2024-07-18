@@ -17,5 +17,7 @@ pub use client::MockSpiceDBClient as SpiceDBClient;
 #[cfg(not(feature = "mock"))]
 pub use client::SpiceDBClient;
 
+pub use strum::IntoStaticStr;
+
 pub use entity::*;
 pub use spicedb::relationship_update::Operation as RelationshipOperation;

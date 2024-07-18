@@ -2,8 +2,8 @@ use pretty_assertions::assert_eq;
 use spicedb_rust::spicedb::{
     relationship_update, subject_reference_raw, wildcard_relationship_update, SubjectReference,
 };
+use spicedb_rust::IntoStaticStr;
 use spicedb_rust::{Actor, Entity, NoRelations, RelationshipOperation, Resource, SpiceDBClient};
-use strum::IntoStaticStr;
 use uuid::Uuid;
 
 struct User(Uuid);

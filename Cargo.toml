@@ -1,6 +1,6 @@
 [package]
 name = "spicedb-rust"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "A client for spicedb"
 license = "MIT"
@@ -16,6 +16,7 @@ tonic-reflection = "0.10.2"
 anyhow = "1.0.86"
 futures = "0.3.30"
 mockall = { version = "0.12.1", optional = true }
+strum = { version = "0.26.3", features = ["derive", "strum_macros"] }
 
 [build-dependencies]
 tonic-build = "0.10.2"
@@ -27,5 +28,4 @@ mock = ["dep:mockall"]
 [dev-dependencies]
 uuid = { version = "1.10.0", features = ["v4", "v7"] }
 tokio = { version = "1.38.0", features = ["rt", "macros"] }
-strum = { version = "0.26.3", features = ["derive", "strum_macros"] }
 pretty_assertions = "1.4.0"
