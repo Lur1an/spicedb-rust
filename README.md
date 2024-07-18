@@ -69,18 +69,11 @@ impl Actor for MyActor {
 
 struct Document;
 
+#[derive(IntoStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum DocumentPermission {
     Read,
     Write,
-}
-
-impl Permission for DocumentPermission {
-    fn name(&self) -> &'static str {
-        match self {
-            DocumentPermission::Read => "read",
-            DocumentPermission::Write => "write",
-        }
-    }
 }
 
 impl Entity for Document {
@@ -92,18 +85,11 @@ impl Entity for Document {
     }
 }
 
+#[derive(IntoStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum DocumentRelation {
     Reader,
     Writer,
-}
-
-impl Relation for DocumentRelation {
-    fn name(&self) -> &'static str {
-        match self {
-            DocumentRelation::Reader => "reader",
-            DocumentRelation::Writer => "writer",
-        }
-    }
 }
 
 impl Resource for Document {
@@ -111,7 +97,7 @@ impl Resource for Document {
 }
 
 ```
-> **_NOTE:_** Will be working on some `strum` integration to cut down on the quite obvious boilerplate that turns the enum variants into strings.
+> **_NOTE:_** The boilerplate for `Relations` and `Permissions` is gone thanks to the `IntoStaticStr` macro from the `strum` crate, this crate also re-exports it.
 
 This type system now makes it impossible to check for a permission that doesn't exist, or create a relationship not supported for an entity. 
 
