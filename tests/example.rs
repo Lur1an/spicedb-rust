@@ -78,7 +78,7 @@ async fn example() {
         .await
         .unwrap();
     let schema = include_str!("schema.zed");
-    client.write_schema(schema).await.unwrap();
+    client.write_schema(schema.to_owned()).await.unwrap();
 
     let mut request = client.create_relationships_request();
     let user_id = Uuid::now_v7();
@@ -99,9 +99,9 @@ async fn example() {
 
     let actor = User::new(user_id);
     let authorized = client
-        .check_permission_at::<Document>(
+        .check_permission_at::<_, Document>(
             &actor,
-            "homework",
+            "homework".to_owned(),
             DocumentPermission::Write,
             token.clone(),
         )
@@ -114,9 +114,9 @@ async fn example() {
 
     let random_user_actor = User::new(Uuid::now_v7());
     let authorized = client
-        .check_permission_at::<Document>(
+        .check_permission_at::<_, Document>(
             &random_user_actor,
-            "manga",
+            "manga".to_owned(),
             DocumentPermission::Read,
             token.clone(),
         )
@@ -128,7 +128,7 @@ async fn example() {
     );
 
     let mut resource_ids = client
-        .lookup_resources_at::<Document>(&actor, DocumentPermission::Read, token)
+        .lookup_resources_at::<_, Document>(&actor, DocumentPermission::Read, token)
         .await
         .unwrap();
     let mut expected = vec!["homework", "manga"];

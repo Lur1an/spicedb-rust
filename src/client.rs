@@ -84,12 +84,13 @@ impl SpiceDBClient {
 
     /// Shortcut for the most common use case of looking up resources, to quickly collect all ID's
     /// returned in one call.
-    pub async fn lookup_resources<R>(
+    pub async fn lookup_resources<A, R>(
         &self,
-        actor: &impl Actor,
+        actor: &A,
         permission: R::Permissions,
     ) -> GrpcResult<Vec<R::Id>>
     where
+        A: Actor,
         R: Resource,
     {
         let mut request = self.lookup_resources_request::<R>();
@@ -98,13 +99,14 @@ impl SpiceDBClient {
         request.send_collect_ids().await
     }
 
-    pub async fn lookup_resources_at<R>(
+    pub async fn lookup_resources_at<A, R>(
         &self,
-        actor: &impl Actor,
+        actor: &A,
         permission: R::Permissions,
         token: spicedb::ZedToken,
     ) -> GrpcResult<Vec<R::Id>>
     where
+        A: Actor,
         R: Resource,
     {
         let mut request = self.lookup_resources_request::<R>();
@@ -116,37 +118,39 @@ impl SpiceDBClient {
 
     /// Shortcut for the most common use case of checking a permission for an actor in the system
     /// on a specific resource `R` with default consistency.
-    pub async fn check_permission<R>(
+    pub async fn check_permission<A, R>(
         &self,
-        actor: &impl Actor,
-        resource_id: impl Into<R::Id>,
+        actor: &A,
+        resource_id: R::Id,
         permission: R::Permissions,
     ) -> GrpcResult<bool>
     where
+        A: Actor,
         R: Resource,
     {
         let mut request = self.check_permission_request();
         request.subject(actor.to_subject());
-        request.resource(object_reference::<R>(resource_id.into()));
+        request.resource(object_reference::<R>(resource_id));
         request.permission(permission.name());
         let resp = request.send().await?;
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
     }
 
-    pub async fn check_permission_at<R>(
+    pub async fn check_permission_at<A, R>(
         &self,
-        actor: &impl Actor,
-        resource_id: impl Into<R::Id>,
+        actor: &A,
+        resource_id: R::Id,
         permission: R::Permissions,
         token: spicedb::ZedToken,
     ) -> GrpcResult<bool>
     where
+        A: Actor,
         R: Resource,
     {
         let mut request = self.check_permission_request();
         request.subject(actor.to_subject());
-        request.resource(object_reference::<R>(resource_id.into()));
+        request.resource(object_reference::<R>(resource_id));
         request.permission(permission.name());
         request.consistency(Consistency::AtLeastAsFresh(token));
         let resp = request.send().await?;
@@ -154,15 +158,10 @@ impl SpiceDBClient {
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
     }
 
-    pub async fn write_schema(
-        &self,
-        schema: impl Into<String>,
-    ) -> Result<spicedb::ZedToken, tonic::Status> {
+    pub async fn write_schema(&self, schema: String) -> Result<spicedb::ZedToken, tonic::Status> {
         let resp = self
             .schema_service_client()
-            .write_schema(spicedb::WriteSchemaRequest {
-                schema: schema.into(),
-            })
+            .write_schema(spicedb::WriteSchemaRequest { schema })
             .await?
             .into_inner();
         resp.written_at
