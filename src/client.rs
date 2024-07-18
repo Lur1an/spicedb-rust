@@ -1,12 +1,13 @@
 use crate::grpc::{BearerTokenInterceptor, GrpcResult};
 use crate::permission::{
     CheckPermissionRequest, DeleteRelationshipsRequest, LookupResourcesRequest,
-    ReadRelationshipsRequest, SpiceDBPermissionClient, WriteRelationshipsRequest,
+    LookupSubjectsRequest, ReadRelationshipsRequest, SpiceDBPermissionClient,
+    WriteRelationshipsRequest,
 };
 use crate::schema::SpiceDBSchemaClient;
 use crate::spicedb::wrappers::{Consistency, ReadSchemaResponse};
 use crate::spicedb::{self, object_reference};
-use crate::{Actor, Permission, Resource};
+use crate::{Actor, Entity, Permission, Resource};
 
 #[derive(Clone, Debug)]
 pub struct SpiceDBClient {
@@ -83,6 +84,33 @@ impl SpiceDBClient {
         LookupResourcesRequest::new(self.permission_service_client())
     }
 
+    pub fn lookup_subjects_request<S, R>(&self) -> LookupSubjectsRequest<S, R>
+    where
+        S: Entity,
+        R: Resource,
+    {
+        LookupSubjectsRequest::new(self.permission_service_client())
+    }
+
+    pub async fn create_relationships<R, P>(
+        &self,
+        relationships: R,
+        preconditions: P,
+    ) -> GrpcResult<spicedb::ZedToken>
+    where
+        R: IntoIterator<Item = spicedb::RelationshipUpdate> + 'static,
+        P: IntoIterator<Item = spicedb::Precondition> + 'static,
+    {
+        let mut request = self.create_relationships_request();
+        for precondition in preconditions {
+            request.add_precondition_raw(precondition);
+        }
+        for relationship in relationships {
+            request.add_relationship_raw(relationship);
+        }
+        request.send().await
+    }
+
     /// Shortcut for the most common use case of looking up resources, to quickly collect all ID's
     /// returned in one call.
     pub async fn lookup_resources<A, R>(
@@ -113,6 +141,36 @@ impl SpiceDBClient {
         let mut request = self.lookup_resources_request::<R>();
         request.permission(permission);
         request.actor(actor);
+        request.with_consistency(Consistency::AtLeastAsFresh(token));
+        request.send_collect_ids().await
+    }
+
+    pub async fn lookup_subjects<S, R>(
+        &self,
+        id: R::Id,
+        permission: R::Permissions,
+    ) -> GrpcResult<Vec<S::Id>>
+    where
+        R: Resource,
+        S: Entity,
+    {
+        let mut request = self.lookup_subjects_request::<S, R>();
+        request.resource(id, permission);
+        request.send_collect_ids().await
+    }
+
+    pub async fn lookup_subjects_at<S, R>(
+        &self,
+        id: R::Id,
+        permission: R::Permissions,
+        token: spicedb::ZedToken,
+    ) -> GrpcResult<Vec<S::Id>>
+    where
+        S: Entity,
+        R: Resource,
+    {
+        let mut request = self.lookup_subjects_request::<S, R>();
+        request.resource(id, permission);
         request.with_consistency(Consistency::AtLeastAsFresh(token));
         request.send_collect_ids().await
     }

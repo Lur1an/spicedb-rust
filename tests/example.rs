@@ -1,5 +1,7 @@
 use pretty_assertions::assert_eq;
-use spicedb_rust::spicedb::{subject_reference_raw, SubjectReference};
+use spicedb_rust::spicedb::{
+    relationship_update, subject_reference_raw, wildcard_relationship_update, SubjectReference,
+};
 use spicedb_rust::{
     Actor, Entity, NoRelations, Permission, Relation, RelationshipOperation, Resource,
     SpiceDBClient,
@@ -74,28 +76,31 @@ impl Resource for Document {
 
 #[tokio::test]
 async fn example() {
-    let client = SpiceDBClient::new("http://localhost:50051", "randomkey")
+    let client = SpiceDBClient::new("http://localhost:50051".to_owned(), "randomkey")
         .await
         .unwrap();
     let schema = include_str!("schema.zed");
     client.write_schema(schema.to_owned()).await.unwrap();
 
-    let mut request = client.create_relationships_request();
     let user_id = Uuid::now_v7();
-    request.add_relationship::<User, Document>(
-        RelationshipOperation::Touch,
-        user_id,
-        None,
-        "homework",
-        DocumentRelation::Writer,
-    );
-    request.add_wildcard_relationship::<User, Document>(
-        RelationshipOperation::Touch,
-        "manga",
-        DocumentRelation::Reader,
-    );
-
-    let token = request.send().await.unwrap();
+    let relationships = [
+        relationship_update::<User, Document>(
+            RelationshipOperation::Touch,
+            user_id,
+            None,
+            "homework",
+            DocumentRelation::Writer,
+        ),
+        wildcard_relationship_update::<User, Document>(
+            RelationshipOperation::Touch,
+            "manga",
+            DocumentRelation::Reader,
+        ),
+    ];
+    let token = client
+        .create_relationships(relationships, [])
+        .await
+        .unwrap();
 
     let actor = User::new(user_id);
     let authorized = client
@@ -128,7 +133,7 @@ async fn example() {
     );
 
     let mut resource_ids = client
-        .lookup_resources_at::<_, Document>(&actor, DocumentPermission::Read, token)
+        .lookup_resources_at::<_, Document>(&actor, DocumentPermission::Read, token.clone())
         .await
         .unwrap();
     let mut expected = vec!["homework", "manga"];
@@ -138,4 +143,14 @@ async fn example() {
         resource_ids, expected,
         "Homework and Manga should both appear in documents User can read"
     );
+
+    let subject_ids = client
+        .lookup_subjects_at::<User, Document>(
+            "homework".to_owned(),
+            DocumentPermission::Write,
+            token,
+        )
+        .await
+        .unwrap();
+    assert_eq!(subject_ids, vec![user_id]);
 }

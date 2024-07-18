@@ -1,9 +1,9 @@
-use crate::{Entity, Relation, RelationshipOperation, Resource, WildCardId};
+use crate::{Caveat, Entity, Relation, RelationshipOperation, Resource, WildCardId};
 
 use super::subject_filter::RelationFilter;
 use super::{
-    ObjectReference, Precondition, Relationship, RelationshipFilter, RelationshipUpdate,
-    SubjectFilter, SubjectReference,
+    ContextualizedCaveat, ObjectReference, Precondition, Relationship, RelationshipFilter,
+    RelationshipUpdate, SubjectFilter, SubjectReference,
 };
 
 pub fn subject_filter<S>(id: Option<S::Id>, relation: Option<S::Relations>) -> SubjectFilter
@@ -172,6 +172,35 @@ where
             relation: relation.name().to_owned(),
             subject: Some(subject),
             optional_caveat: None,
+        }),
+    }
+}
+
+pub fn caveated_relationship_update<S, R, C>(
+    operation: RelationshipOperation,
+    subject_id: impl Into<S::Id>,
+    subject_relation: Option<S::Relations>,
+    resource_id: impl Into<R::Id>,
+    relation: R::Relations,
+    caveat_context: C::ContextStruct,
+) -> RelationshipUpdate
+where
+    S: Entity,
+    R: Resource,
+    C: Caveat,
+{
+    let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
+    let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            resource: Some(resource),
+            relation: relation.name().to_owned(),
+            subject: Some(subject),
+            optional_caveat: Some(ContextualizedCaveat {
+                caveat_name: C::name().to_owned(),
+                context: Some(caveat_context.into()),
+            }),
         }),
     }
 }

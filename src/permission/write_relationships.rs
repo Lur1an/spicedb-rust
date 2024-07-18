@@ -1,3 +1,4 @@
+use crate::grpc::GrpcResult;
 use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb::{object_reference, subject_reference, wildcard_relationship_update};
 use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource};
@@ -125,7 +126,7 @@ impl WriteRelationshipsRequest {
         self
     }
 
-    pub async fn send(mut self) -> Result<spicedb::ZedToken, tonic::Status> {
+    pub async fn send(mut self) -> GrpcResult<spicedb::ZedToken> {
         let resp = self
             .client
             .write_relationships(self.request)
