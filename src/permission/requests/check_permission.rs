@@ -1,5 +1,3 @@
-use tokio_stream::{Stream, StreamExt};
-
 use crate::grpc::GrpcResult;
 use crate::permission::PermissionServiceClient;
 use crate::spicedb;

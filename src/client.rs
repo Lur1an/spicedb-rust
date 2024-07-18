@@ -40,12 +40,24 @@ impl SpiceDBClient {
     }
 
     #[cfg(feature = "schema")]
+    #[inline]
     pub fn schema_client(&self) -> &crate::schema::Client {
         &self.schema_service_client
     }
 
+    #[cfg(feature = "schema")]
+    pub fn into_schema_client(self) -> crate::schema::Client {
+        self.schema_service_client
+    }
+
     #[cfg(feature = "permission")]
+    #[inline]
     pub fn permission_client(&self) -> &crate::permission::PermissionServiceClient {
         &self.permission_service_client
+    }
+
+    #[cfg(feature = "permission")]
+    pub fn into_permission_client(self) -> crate::permission::PermissionServiceClient {
+        self.permission_service_client
     }
 }
