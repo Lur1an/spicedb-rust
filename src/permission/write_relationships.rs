@@ -1,6 +1,8 @@
 use crate::grpc::GrpcResult;
 use crate::permission::SpiceDBPermissionClient;
-use crate::spicedb::{object_reference, subject_reference, wildcard_relationship_update};
+use crate::spicedb::{
+    caveated_relationship_update, object_reference, subject_reference, wildcard_relationship_update,
+};
 use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource};
 
 use self::spicedb::precondition::Operation;
@@ -109,20 +111,16 @@ impl WriteRelationshipsRequest {
         R: Resource,
         C: Caveat,
     {
-        let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
-        let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
-        self.request.updates.push(spicedb::RelationshipUpdate {
-            operation: operation as i32,
-            relationship: Some(spicedb::Relationship {
-                resource: Some(resource),
-                relation: relation.name().to_owned(),
-                subject: Some(subject),
-                optional_caveat: Some(spicedb::ContextualizedCaveat {
-                    caveat_name: C::name().to_owned(),
-                    context: Some(caveat_context.into()),
-                }),
-            }),
-        });
+        self.request
+            .updates
+            .push(caveated_relationship_update::<S, R, C>(
+                operation,
+                subject_id,
+                subject_relation,
+                resource_id,
+                relation,
+                caveat_context,
+            ));
         self
     }
 
