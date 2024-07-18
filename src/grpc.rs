@@ -5,6 +5,8 @@ use tonic::transport::Channel;
 
 pub type AuthenticatedChannel = InterceptedService<Channel, BearerTokenInterceptor>;
 
+pub type GrpcResult<T> = Result<T, tonic::Status>;
+
 #[derive(Clone, Debug)]
 pub struct BearerTokenInterceptor {
     token: MetadataValue<Ascii>,

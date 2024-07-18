@@ -1,8 +1,9 @@
-use tokio_stream::StreamExt;
+use tokio_stream::{Stream, StreamExt};
 
+use crate::grpc::GrpcResult;
 use crate::permission::PermissionServiceClient;
 use crate::spicedb;
-use crate::spicedb::wrappers::Consistency;
+use crate::spicedb::wrappers::{Consistency, ReadRelationshipsResponse};
 
 #[derive(Clone, Debug)]
 pub struct ReadRelationshipsRequest {
@@ -38,14 +39,15 @@ impl ReadRelationshipsRequest {
         self
     }
 
-    pub async fn send(mut self) -> Result<spicedb::ZedToken, tonic::Status> {
-        let mut resp = self
+    pub async fn send(
+        mut self,
+    ) -> GrpcResult<impl Stream<Item = GrpcResult<ReadRelationshipsResponse>>> {
+        let resp = self
             .client
             .inner
             .read_relationships(self.request)
             .await?
             .into_inner();
-        resp.next().await;
-        todo!()
+        Ok(resp.map(|r| r.map(Into::into)))
     }
 }

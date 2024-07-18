@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use crate::spicedb;
+
 pub trait Entity {
     type Relations: Relation;
     type Id: FromStr + Into<String>;
@@ -27,8 +29,7 @@ pub trait Caveat {
 }
 
 pub trait Actor {
-    fn object_type(&self) -> &'static str;
-    fn id(&self) -> String;
+    fn into_subject(&self) -> spicedb::SubjectReference;
 }
 
 pub struct NoCaveat;

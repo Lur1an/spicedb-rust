@@ -28,17 +28,53 @@ pub struct SubjectReference {
     pub optional_relation: Option<String>,
 }
 
-/// Relationship structure without the stupid optional types due to proto3
+impl From<super::SubjectReference> for SubjectReference {
+    fn from(subject: super::SubjectReference) -> Self {
+        SubjectReference {
+            object: subject.object.unwrap(),
+            optional_relation: if subject.optional_relation.is_empty() {
+                None
+            } else {
+                Some(subject.optional_relation)
+            },
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Relationship {
     pub resource: super::ObjectReference,
     pub relation: String,
     pub subject: SubjectReference,
+    pub optional_caveat: Option<super::ContextualizedCaveat>,
 }
 
+impl From<super::Relationship> for Relationship {
+    fn from(rel: super::Relationship) -> Self {
+        Relationship {
+            resource: rel.resource.unwrap(),
+            relation: rel.relation,
+            subject: rel.subject.unwrap().into(),
+            optional_caveat: rel.optional_caveat,
+        }
+    }
+}
+
+/// Response struct without the stupid optional types due to proto3 and a `From` impl that
+/// assumes the `validate` rules defined in the proto file to be upheld
 #[derive(Clone, Debug, PartialEq)]
 pub struct ReadRelationshipsResponse {
-    pub zed_token: super::ZedToken,
+    pub read_at: super::ZedToken,
     pub relationships: Vec<Relationship>,
-    pub after_result_cursor: super::Cursor,
+    pub after_result_cursor: Option<super::Cursor>,
+}
+
+impl From<super::ReadRelationshipsResponse> for ReadRelationshipsResponse {
+    fn from(resp: super::ReadRelationshipsResponse) -> Self {
+        ReadRelationshipsResponse {
+            read_at: resp.read_at.unwrap(),
+            relationships: resp.relationship.into_iter().map(|r| r.into()).collect(),
+            after_result_cursor: resp.after_result_cursor,
+        }
+    }
 }

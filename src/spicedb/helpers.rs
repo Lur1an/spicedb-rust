@@ -1,7 +1,7 @@
-use crate::{Relation, Resource, Subject};
+use crate::{Entity, Relation, Resource, Subject};
 
 use super::subject_filter::RelationFilter;
-use super::{Precondition, RelationshipFilter, SubjectFilter};
+use super::{ObjectReference, Precondition, RelationshipFilter, SubjectFilter, SubjectReference};
 
 pub fn subject_filter<S>(id: Option<S::Id>, relation: Option<S::Relations>) -> SubjectFilter
 where
@@ -93,5 +93,36 @@ pub fn precondition_raw(
             relation,
             subject_filter,
         )),
+    }
+}
+
+pub fn subject_reference<S>(id: S::Id, relation: Option<S::Relations>) -> SubjectReference
+where
+    S: Subject,
+{
+    subject_reference_raw(id, S::object_type(), relation.map(|r| r.name()))
+}
+
+pub fn subject_reference_raw(
+    id: impl Into<String>,
+    object_type: impl Into<String>,
+    relation: Option<impl Into<String>>,
+) -> SubjectReference {
+    SubjectReference {
+        object: Some(ObjectReference {
+            object_type: object_type.into(),
+            object_id: id.into(),
+        }),
+        optional_relation: relation.map(Into::into).unwrap_or_default(),
+    }
+}
+
+pub fn object_reference<E>(id: E::Id) -> ObjectReference
+where
+    E: Entity,
+{
+    ObjectReference {
+        object_type: E::object_type().into(),
+        object_id: id.into(),
     }
 }

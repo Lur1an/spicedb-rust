@@ -1,9 +1,16 @@
+use spicedb_rust::spicedb::{subject_reference_raw, SubjectReference};
 use spicedb_rust::{
-    Entity, NoRelations, Permission, Relation, RelationshipOperation, Resource, SpiceDBClient,
-    Subject,
+    Actor, Entity, NoRelations, Permission, Relation, RelationshipOperation, Resource,
+    SpiceDBClient, Subject,
 };
 
-pub struct User;
+pub struct User(String);
+
+impl User {
+    pub fn new(id: impl Into<String>) -> Self {
+        Self(id.into())
+    }
+}
 
 impl Entity for User {
     type Relations = NoRelations;
@@ -15,6 +22,12 @@ impl Entity for User {
 }
 
 impl Subject for User {}
+
+impl Actor for User {
+    fn into_subject(&self) -> SubjectReference {
+        subject_reference_raw(self.0.clone(), User::object_type(), None::<String>)
+    }
+}
 
 pub struct Document;
 
@@ -72,13 +85,26 @@ async fn write_relationships() {
         .unwrap();
     let schema = include_str!("schema.zed");
     client.schema_client().write_schema(schema).await.unwrap();
-    let mut request = client.permission_client().create_relationships();
+
+    let user = User::new("jeff");
+    let document_id = "homework".to_owned();
+
+    let mut request = client.permission_client().create_relationships_request();
     request.add_relationship::<User, Document>(
-        RelationshipOperation::Create,
+        RelationshipOperation::Touch,
         "jeff".to_owned(),
         None,
-        "homework".to_owned(),
+        document_id.clone(),
         DocumentRelation::Writer,
     );
     request.send().await.unwrap();
+    let authorized = client
+        .permission_client()
+        .check_permission::<Document>(&user, document_id.clone(), DocumentPermission::Write)
+        .await
+        .unwrap();
+    assert!(
+        authorized,
+        "User should be authorized to write the document"
+    );
 }
