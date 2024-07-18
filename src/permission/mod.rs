@@ -64,4 +64,24 @@ impl PermissionServiceClient {
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
     }
+
+    pub async fn check_permission_at<R>(
+        &self,
+        actor: &impl Actor,
+        resource_id: R::Id,
+        permission: R::Permissions,
+        token: spicedb::ZedToken,
+    ) -> GrpcResult<bool>
+    where
+        R: Resource,
+    {
+        let mut request = self.check_permission_request();
+        request.with_subject(actor.to_subject());
+        request.with_resource(object_reference::<R>(resource_id));
+        request.with_permission(permission.name());
+        request.with_consistency(spicedb::wrappers::Consistency::AtLeastAsFresh(token));
+        let resp = request.send().await?;
+        Ok(resp.permissionship
+            == spicedb::check_permission_response::Permissionship::HasPermission as i32)
+    }
 }

@@ -97,14 +97,14 @@ async fn write_relationships() {
         document_id.clone(),
         DocumentRelation::Writer,
     );
-    request.send().await.unwrap();
+    let token = request.send().await.unwrap();
     let authorized = client
         .permission_client()
-        .check_permission::<Document>(&user, document_id.clone(), DocumentPermission::Write)
+        .check_permission_at::<Document>(&user, document_id, DocumentPermission::Write, token)
         .await
         .unwrap();
     assert!(
         authorized,
-        "User should be authorized to write the document"
+        "Jeff should be authorized to write the document"
     );
 }
