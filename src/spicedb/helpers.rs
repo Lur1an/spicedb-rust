@@ -1,11 +1,14 @@
-use crate::{Entity, Relation, Resource, Subject};
+use crate::{Caveat, Entity, Relation, RelationshipOperation, Resource, WildCardId};
 
 use super::subject_filter::RelationFilter;
-use super::{ObjectReference, Precondition, RelationshipFilter, SubjectFilter, SubjectReference};
+use super::{
+    ContextualizedCaveat, ObjectReference, Precondition, Relationship, RelationshipFilter,
+    RelationshipUpdate, SubjectFilter, SubjectReference,
+};
 
 pub fn subject_filter<S>(id: Option<S::Id>, relation: Option<S::Relations>) -> SubjectFilter
 where
-    S: Subject,
+    S: Entity,
 {
     subject_filter_raw(S::object_type(), id, relation.map(|r| r.name()))
 }
@@ -98,7 +101,7 @@ pub fn precondition_raw(
 
 pub fn subject_reference<S>(id: S::Id, relation: Option<S::Relations>) -> SubjectReference
 where
-    S: Subject,
+    S: Entity,
 {
     subject_reference_raw(id, S::object_type(), relation.map(|r| r.name()))
 }
@@ -124,5 +127,80 @@ where
     ObjectReference {
         object_type: E::object_type().into(),
         object_id: id.into(),
+    }
+}
+
+pub fn wildcard_relationship_update<S, R>(
+    operation: RelationshipOperation,
+    resource_id: impl Into<R::Id>,
+    relation: R::Relations,
+) -> RelationshipUpdate
+where
+    S: Entity,
+    R: Resource,
+{
+    let subject = subject_reference_raw(WildCardId, S::object_type(), None::<String>);
+    let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            resource: Some(resource),
+            relation: relation.name().to_owned(),
+            subject: Some(subject),
+            optional_caveat: None,
+        }),
+    }
+}
+
+pub fn relationship_update<S, R>(
+    operation: RelationshipOperation,
+    subject_id: impl Into<S::Id>,
+    subject_relation: Option<S::Relations>,
+    resource_id: impl Into<R::Id>,
+    relation: R::Relations,
+) -> RelationshipUpdate
+where
+    S: Entity,
+    R: Resource,
+{
+    let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
+    let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            resource: Some(resource),
+            relation: relation.name().to_owned(),
+            subject: Some(subject),
+            optional_caveat: None,
+        }),
+    }
+}
+
+pub fn caveated_relationship_update<S, R, C>(
+    operation: RelationshipOperation,
+    subject_id: impl Into<S::Id>,
+    subject_relation: Option<S::Relations>,
+    resource_id: impl Into<R::Id>,
+    relation: R::Relations,
+    caveat_context: C::ContextStruct,
+) -> RelationshipUpdate
+where
+    S: Entity,
+    R: Resource,
+    C: Caveat,
+{
+    let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
+    let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            resource: Some(resource),
+            relation: relation.name().to_owned(),
+            subject: Some(subject),
+            optional_caveat: Some(ContextualizedCaveat {
+                caveat_name: C::name().to_owned(),
+                context: Some(caveat_context.into()),
+            }),
+        }),
     }
 }

@@ -1,41 +1,40 @@
-use spicedb_rust::spicedb::{subject_reference_raw, SubjectReference};
+use pretty_assertions::assert_eq;
+use spicedb_rust::spicedb::{
+    relationship_update, subject_reference_raw, wildcard_relationship_update, SubjectReference,
+};
 use spicedb_rust::{
     Actor, Entity, NoRelations, Permission, Relation, RelationshipOperation, Resource,
-    SpiceDBClient, Subject,
+    SpiceDBClient,
 };
+use uuid::Uuid;
 
-pub struct User(String);
+struct User(Uuid);
 
 impl User {
-    pub fn new(id: impl Into<String>) -> Self {
-        Self(id.into())
+    pub fn new(id: Uuid) -> Self {
+        Self(id)
     }
 }
 
 impl Entity for User {
     type Relations = NoRelations;
-    type Id = String;
+    type Id = Uuid;
 
     fn object_type() -> &'static str {
         "user"
     }
 }
 
-impl Subject for User {}
-
 impl Actor for User {
     fn to_subject(&self) -> SubjectReference {
-        subject_reference_raw(self.0.clone(), User::object_type(), None::<String>)
+        subject_reference_raw(self.0, User::object_type(), None::<String>)
     }
 }
 
-pub struct Document;
+struct Document;
 
-#[derive(strum::EnumString)]
 pub enum DocumentPermission {
-    #[strum(serialize = "read")]
     Read,
-    #[strum(serialize = "write")]
     Write,
 }
 
@@ -57,11 +56,8 @@ impl Entity for Document {
     }
 }
 
-#[derive(strum::EnumString)]
 pub enum DocumentRelation {
-    #[strum(serialize = "reader")]
     Reader,
-    #[strum(serialize = "writer")]
     Writer,
 }
 
@@ -79,32 +75,101 @@ impl Resource for Document {
 }
 
 #[tokio::test]
-async fn write_relationships() {
-    let client = SpiceDBClient::new("http://localhost:50051", "randomkey")
+async fn example() {
+    let client = SpiceDBClient::new("http://localhost:50051".to_owned(), "randomkey")
         .await
         .unwrap();
     let schema = include_str!("schema.zed");
-    client.schema_client().write_schema(schema).await.unwrap();
+    client.write_schema(schema.to_owned()).await.unwrap();
 
-    let user = User::new("jeff");
-    let document_id = "homework".to_owned();
+    let user_id = Uuid::now_v7();
+    let relationships = [
+        relationship_update::<User, Document>(
+            RelationshipOperation::Touch,
+            user_id,
+            None,
+            "homework",
+            DocumentRelation::Writer,
+        ),
+        wildcard_relationship_update::<User, Document>(
+            RelationshipOperation::Touch,
+            "manga",
+            DocumentRelation::Reader,
+        ),
+    ];
+    let token = client
+        .create_relationships(relationships, [])
+        .await
+        .unwrap();
 
-    let mut request = client.permission_client().create_relationships_request();
-    request.add_relationship::<User, Document>(
-        RelationshipOperation::Touch,
-        "jeff".to_owned(),
-        None,
-        document_id.clone(),
-        DocumentRelation::Writer,
-    );
-    let token = request.send().await.unwrap();
+    let actor = User::new(user_id);
     let authorized = client
-        .permission_client()
-        .check_permission_at::<Document>(&user, document_id, DocumentPermission::Write, token)
+        .check_permission_at::<_, Document>(
+            &actor,
+            "homework".to_owned(),
+            DocumentPermission::Write,
+            token.clone(),
+        )
         .await
         .unwrap();
     assert!(
         authorized,
-        "Jeff should be authorized to write the document"
+        "User should be authorized to write the document"
+    );
+
+    let random_user_actor = User::new(Uuid::now_v7());
+    let authorized = client
+        .check_permission_at::<_, Document>(
+            &random_user_actor,
+            "manga".to_owned(),
+            DocumentPermission::Read,
+            token.clone(),
+        )
+        .await
+        .unwrap();
+    assert!(
+        authorized,
+        "Random user should be authorized to read `manga` due to wildcard"
+    );
+
+    let mut resource_ids = client
+        .lookup_resources_at::<_, Document>(&actor, DocumentPermission::Read, token.clone())
+        .await
+        .unwrap();
+    let mut expected = vec!["homework", "manga"];
+    resource_ids.sort();
+    expected.sort();
+    assert_eq!(
+        resource_ids, expected,
+        "Homework and Manga should both appear in documents User can read"
+    );
+
+    let subject_ids = client
+        .lookup_subjects_at::<User, Document>(
+            "homework".to_owned(),
+            DocumentPermission::Write,
+            token.clone(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(subject_ids, vec![user_id]);
+
+    let new_token = client
+        .delete_relationships::<Document>(None, None, None)
+        .await
+        .unwrap();
+
+    let authorized = client
+        .check_permission_at::<_, Document>(
+            &random_user_actor,
+            "manga".to_owned(),
+            DocumentPermission::Read,
+            new_token,
+        )
+        .await
+        .unwrap();
+    assert!(
+        !authorized,
+        "Nobody should be authorized to read `manga` due to nuking all relationships"
     );
 }

@@ -1,7 +1,7 @@
 use self::spicedb::delete_relationships_response::DeletionProgress;
 use self::spicedb::precondition::Operation;
 use crate::entity::{Relation, Resource};
-use crate::permission::PermissionServiceClient;
+use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb;
 
 #[derive(Clone, Debug)]
@@ -9,7 +9,7 @@ pub struct DeleteRelationshipsRequest<R>
 where
     R: Resource,
 {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::DeleteRelationshipsRequest,
     _phantom: std::marker::PhantomData<R>,
 }
@@ -18,7 +18,7 @@ impl<R> DeleteRelationshipsRequest<R>
 where
     R: Resource,
 {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         Self {
             client,
             request: spicedb::DeleteRelationshipsRequest {
@@ -57,9 +57,11 @@ where
         self
     }
 
-    pub fn with_id(&mut self, resource_id: R::Id) -> &mut Self {
+    pub fn with_id(&mut self, resource_id: impl Into<R::Id>) -> &mut Self {
         match self.request.relationship_filter.as_mut() {
-            Some(rf) => resource_id.into().clone_into(&mut rf.optional_resource_id),
+            Some(rf) => Into::<R::Id>::into(resource_id)
+                .into()
+                .clone_into(&mut rf.optional_resource_id),
             None => unreachable!(),
         }
         self
@@ -88,7 +90,7 @@ where
         self
     }
 
-    pub fn with_limit(&mut self, limit: u32) -> &mut Self {
+    pub fn limit(&mut self, limit: u32) -> &mut Self {
         self.request.optional_limit = limit;
         self
     }
@@ -112,7 +114,6 @@ where
     > {
         let resp = self
             .client
-            .inner
             .delete_relationships(self.request)
             .await?
             .into_inner();

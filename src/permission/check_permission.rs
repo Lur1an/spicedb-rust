@@ -1,48 +1,48 @@
 use crate::grpc::GrpcResult;
-use crate::permission::PermissionServiceClient;
+use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb;
 use crate::spicedb::wrappers::Consistency;
 
 #[derive(Clone, Debug)]
 pub struct CheckPermissionRequest {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::CheckPermissionRequest,
 }
 
 impl CheckPermissionRequest {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::CheckPermissionRequest {
             ..Default::default()
         };
         CheckPermissionRequest { client, request }
     }
 
-    pub fn with_permission(&mut self, permission: impl Into<String>) -> &mut Self {
+    pub fn permission(&mut self, permission: impl Into<String>) -> &mut Self {
         self.request.permission = permission.into();
         self
     }
 
-    pub fn with_tracing(&mut self) -> &mut Self {
+    pub fn enable_tracing(&mut self) -> &mut Self {
         self.request.with_tracing = true;
         self
     }
 
-    pub fn with_context(&mut self, context: impl Into<prost_types::Struct>) -> &mut Self {
+    pub fn context(&mut self, context: impl Into<prost_types::Struct>) -> &mut Self {
         self.request.context = Some(context.into());
         self
     }
 
-    pub fn with_subject(&mut self, subject: spicedb::SubjectReference) -> &mut Self {
+    pub fn subject(&mut self, subject: spicedb::SubjectReference) -> &mut Self {
         self.request.subject = Some(subject);
         self
     }
 
-    pub fn with_resource(&mut self, resource: spicedb::ObjectReference) -> &mut Self {
+    pub fn resource(&mut self, resource: spicedb::ObjectReference) -> &mut Self {
         self.request.resource = Some(resource);
         self
     }
 
-    pub fn with_consistency(&mut self, consistency: Consistency) -> &mut Self {
+    pub fn consistency(&mut self, consistency: Consistency) -> &mut Self {
         self.request.consistency = Some(consistency.into());
         self
     }
@@ -59,7 +59,6 @@ impl CheckPermissionRequest {
         }
         let resp = self
             .client
-            .inner
             .check_permission(self.request)
             .await?
             .into_inner();

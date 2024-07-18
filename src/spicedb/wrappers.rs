@@ -1,5 +1,7 @@
 use super::consistency::Requirement;
+use super::{LookupPermissionship};
 
+/// Wrapper enum to shorten the expressions needed to construct the gRPC `Consistency` type
 #[derive(Clone, Debug, PartialEq)]
 pub enum Consistency {
     MinimizeLatency,
@@ -61,7 +63,7 @@ impl From<super::Relationship> for Relationship {
 }
 
 /// Response struct without the stupid optional types due to proto3 and a `From` impl that
-/// assumes the `validate` rules defined in the proto file to be upheld
+/// assumes the `validate` rules defined in the proto file to be upheld, otherwise it panics.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ReadRelationshipsResponse {
     pub read_at: super::ZedToken,
@@ -75,6 +77,31 @@ impl From<super::ReadRelationshipsResponse> for ReadRelationshipsResponse {
             read_at: resp.read_at.unwrap(),
             relationships: resp.relationship.into_iter().map(|r| r.into()).collect(),
             after_result_cursor: resp.after_result_cursor,
+        }
+    }
+}
+
+/// Wrapper struct for the LookupResourcesResponse, since it looks up all resources of a specific
+/// type we can be sure that all Ids are also of the same type.
+pub struct LookupResourcesResponse<Id> {
+    pub id: Id,
+    pub looked_up_at: Option<super::ZedToken>,
+    pub permissionship: LookupPermissionship,
+    pub missing_caveats: Vec<String>,
+    pub after_result_cursor: Option<super::Cursor>,
+}
+
+/// Wrapper struct for the ReadSchemaResponse, with validation presuppositions applied
+pub struct ReadSchemaResponse {
+    pub schema_text: String,
+    pub read_at: super::ZedToken,
+}
+
+impl From<super::ReadSchemaResponse> for ReadSchemaResponse {
+    fn from(resp: super::ReadSchemaResponse) -> Self {
+        ReadSchemaResponse {
+            schema_text: resp.schema_text,
+            read_at: resp.read_at.unwrap(),
         }
     }
 }

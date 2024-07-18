@@ -1,7 +1,7 @@
 definition user {}
 
 definition document {
-    relation reader: user
+    relation reader: user | user:*
     relation writer: user
     
     permission read = reader + writer

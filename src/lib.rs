@@ -8,12 +8,14 @@ mod entity;
 mod grpc;
 pub mod spicedb;
 
-#[cfg(feature = "permission")]
 mod permission;
-
-#[cfg(feature = "schema")]
 mod schema;
 
-pub use client::*;
+#[cfg(feature = "mock")]
+pub use client::MockSpiceDBClient as SpiceDBClient;
+
+#[cfg(not(feature = "mock"))]
+pub use client::SpiceDBClient;
+
 pub use entity::*;
 pub use spicedb::relationship_update::Operation as RelationshipOperation;
