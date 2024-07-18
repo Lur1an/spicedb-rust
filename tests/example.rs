@@ -148,9 +148,28 @@ async fn example() {
         .lookup_subjects_at::<User, Document>(
             "homework".to_owned(),
             DocumentPermission::Write,
-            token,
+            token.clone(),
         )
         .await
         .unwrap();
     assert_eq!(subject_ids, vec![user_id]);
+
+    let new_token = client
+        .delete_relationships::<Document>(None, None, None)
+        .await
+        .unwrap();
+
+    let authorized = client
+        .check_permission_at::<_, Document>(
+            &random_user_actor,
+            "manga".to_owned(),
+            DocumentPermission::Read,
+            new_token,
+        )
+        .await
+        .unwrap();
+    assert!(
+        !authorized,
+        "Nobody should be authorized to read `manga` due to nuking all relationships"
+    );
 }

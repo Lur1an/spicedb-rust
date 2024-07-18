@@ -1,9 +1,7 @@
 use crate::grpc::GrpcResult;
 use crate::permission::SpiceDBPermissionClient;
-use crate::spicedb::{
-    caveated_relationship_update, object_reference, subject_reference, wildcard_relationship_update,
-};
-use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource};
+use crate::spicedb::{caveated_relationship_update, wildcard_relationship_update};
+use crate::{spicedb, Caveat, Entity, RelationshipOperation, Resource};
 
 use self::spicedb::precondition::Operation;
 use self::spicedb::{relationship_update, Precondition};

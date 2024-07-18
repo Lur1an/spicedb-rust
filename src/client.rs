@@ -92,6 +92,28 @@ impl SpiceDBClient {
         LookupSubjectsRequest::new(self.permission_service_client())
     }
 
+    pub async fn delete_relationships<R>(
+        &self,
+        id: Option<R::Id>,
+        relation: Option<R::Relations>,
+        subject_filter: Option<spicedb::SubjectFilter>,
+    ) -> GrpcResult<spicedb::ZedToken>
+    where
+        R: Resource,
+    {
+        let mut request = self.delete_relationships_request::<R>();
+        if let Some(id) = id {
+            request.with_id(id);
+        }
+        if let Some(relation) = relation {
+            request.with_relation(relation);
+        }
+        if let Some(subject_filter) = subject_filter {
+            request.with_subject_filter(subject_filter);
+        }
+        request.send().await.map(|resp| resp.0)
+    }
+
     pub async fn create_relationships<R, P>(
         &self,
         relationships: R,
