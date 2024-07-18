@@ -1,5 +1,5 @@
 use super::consistency::Requirement;
-use super::{LookupPermissionship, ResolvedSubject};
+use super::{LookupPermissionship};
 
 /// Wrapper enum to shorten the expressions needed to construct the gRPC `Consistency` type
 #[derive(Clone, Debug, PartialEq)]
