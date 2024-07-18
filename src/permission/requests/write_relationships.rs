@@ -3,6 +3,7 @@ use crate::RelationshipOperation;
 use crate::{spicedb, Caveat, Relation, Resource, Subject};
 
 use self::spicedb::precondition::Operation;
+use self::spicedb::Precondition;
 
 #[derive(Clone, Debug)]
 pub struct WriteRelationshipsRequest {
@@ -17,6 +18,16 @@ impl WriteRelationshipsRequest {
             optional_preconditions: vec![],
         };
         WriteRelationshipsRequest { client, request }
+    }
+
+    pub fn add_precondition_raw(&mut self, precondition: Precondition) -> &mut Self {
+        self.request.optional_preconditions.push(precondition);
+        self
+    }
+
+    pub fn add_relationship_raw(&mut self, relationship: spicedb::RelationshipUpdate) -> &mut Self {
+        self.request.updates.push(relationship);
+        self
     }
 
     pub fn add_precondition<R>(
