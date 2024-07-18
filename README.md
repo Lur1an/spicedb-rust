@@ -10,9 +10,12 @@ API not stable yet, breaking changes are possible in the upcoming days.
 ## API
 The API offers builder interfaces for all gRPC requests that leverage the generic trait type system to 
 cut down on some request building boilerplate and potential errors/typos.
+
 Some of the most common requests are directly exposed as functions on the `Client` struct like `lookup_resources` directly into a `Vec<R::Id>` or a `check_permission` directly to a `bool`.
 
 As an alternative to builder interfaces the client also exposes/will expose the methods directly with all arguments at once as parameters, if you intend to use the upcoming `mock` feature to not have to run a local `SpiceDB` instance in your tests it is recommended you do it this way.
+
+Regarding `impl Trait` parameters on the `SpiceDBClient`, those have all been removed with either generics or just `String`, `&str`. This little QoL loss allows `mockall` to build a `MockSpiceDBClient`.
 
 ## Type System
 The type system of this crate allows definition of rust structs with traits that mirror the schema imported into SpiceDB. This cuts down on potential typos and other bugs that can crawl into development when typing raw strings for relationships & permissions and makes it easier to build the quite complex gRPC requests with some compile-time checks.
@@ -27,7 +30,7 @@ The type system of this crate allows definition of rust structs with traits that
 - A bit of Boilerplate
 
 ### I don't like the type system, can I just use the raw gRPC API?
-Yes you can. All clients under the `SpiceDBClient` struct have a `raw` method that returns the underlying`tonic` client, and the `spicedb` module exports all protobuf types. From personal experience, this is not fun.
+Yes you can. `SpiceDBClient` exposes methods to get the underlying `tonic` client, and the `spicedb` module exports all protobuf types. From personal experience, this is not fun.
 
 ### Example
 Lets take the following SpiceDB schema:

@@ -6,7 +6,7 @@ use crate::spicedb;
 /// The Id type represents whatever rust type you're using internally, since SpiceDB only uses
 /// Strings to avoid having to convert and deal with errors everywhere we use trait bounds `FromStr` and `Into<String>`
 /// which a lot of common Id types like `Uuid` or `u32` already implement.
-pub trait Entity {
+pub trait Entity: 'static {
     type Relations: Relation;
     type Id: FromStr + Into<String>;
 
@@ -41,7 +41,7 @@ pub trait Caveat {
 ///     Service(Uuid),
 /// }
 /// ```
-pub trait Actor {
+pub trait Actor: 'static {
     fn to_subject(&self) -> spicedb::SubjectReference;
 }
 
