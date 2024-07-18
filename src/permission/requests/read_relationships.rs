@@ -2,6 +2,7 @@ use tokio_stream::StreamExt;
 
 use crate::permission::PermissionServiceClient;
 use crate::spicedb;
+use crate::spicedb::wrappers::Consistency;
 
 #[derive(Clone, Debug)]
 pub struct ReadRelationshipsRequest {
@@ -29,6 +30,11 @@ impl ReadRelationshipsRequest {
 
     pub fn with_relationship_filter(&mut self, filter: spicedb::RelationshipFilter) -> &mut Self {
         self.request.relationship_filter = Some(filter);
+        self
+    }
+
+    pub fn with_consistency(&mut self, consistency: Consistency) -> &mut Self {
+        self.request.consistency = Some(consistency.into());
         self
     }
 
