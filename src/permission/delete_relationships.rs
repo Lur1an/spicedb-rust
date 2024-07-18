@@ -1,7 +1,7 @@
 use self::spicedb::delete_relationships_response::DeletionProgress;
 use self::spicedb::precondition::Operation;
 use crate::entity::{Relation, Resource};
-use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
+use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb;
 
 #[derive(Clone, Debug)]

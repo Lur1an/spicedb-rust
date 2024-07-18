@@ -116,9 +116,9 @@ This type system now makes it impossible to check for a permission that doesn't 
 
 Now lets create some relationship and check some permissions!
 ```rust
-let client = spicedbclient::new("http://localhost:50051", "randomkey")
+let client = SpiceDBClient::new("http://localhost:50051", "randomkey")
     .await? ;
-let mut request = client.permission_client().create_relationships_request();
+let mut request = client.create_relationships_request();
 let user_id = uuid::now_v7();
 request.add_relationship::<user, document>(
     relationshipoperation::touch,
@@ -135,9 +135,7 @@ request.add_wildcard_relationship::<user, document>(
 
 let token = request.send().await.unwrap();
 let actor = MyActor(user_id);
-let authorized = client
-    .permission_client()
-    .check_permission_at::<document>(
+let authorized = client.check_permission_at::<document>(
         &actor,
         "homework",
         DocumentPermission::Write,

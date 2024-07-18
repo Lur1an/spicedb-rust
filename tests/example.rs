@@ -78,9 +78,9 @@ async fn example() {
         .await
         .unwrap();
     let schema = include_str!("schema.zed");
-    client.schema_client().write_schema(schema).await.unwrap();
+    client.write_schema(schema).await.unwrap();
 
-    let mut request = client.permission_client().create_relationships_request();
+    let mut request = client.create_relationships_request();
     let user_id = Uuid::now_v7();
     request.add_relationship::<User, Document>(
         RelationshipOperation::Touch,
@@ -99,7 +99,6 @@ async fn example() {
 
     let actor = User::new(user_id);
     let authorized = client
-        .permission_client()
         .check_permission_at::<Document>(
             &actor,
             "homework",
@@ -115,7 +114,6 @@ async fn example() {
 
     let random_user_actor = User::new(Uuid::now_v7());
     let authorized = client
-        .permission_client()
         .check_permission_at::<Document>(
             &random_user_actor,
             "manga",
@@ -130,7 +128,6 @@ async fn example() {
     );
 
     let mut resource_ids = client
-        .permission_client()
         .lookup_resources_at::<Document>(&actor, DocumentPermission::Read, token)
         .await
         .unwrap();

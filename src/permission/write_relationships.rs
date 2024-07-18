@@ -1,4 +1,4 @@
-use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
+use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb::{object_reference, subject_reference, wildcard_relationship_update};
 use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource};
 

@@ -1,4 +1,4 @@
-use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
+use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb;
 
 #[derive(Clone, Debug)]

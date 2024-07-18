@@ -90,3 +90,18 @@ pub struct LookupResourcesResponse<Id> {
     pub missing_caveats: Vec<String>,
     pub after_result_cursor: Option<super::Cursor>,
 }
+
+/// Wrapper struct for the ReadSchemaResponse, with validation presuppositions applied
+pub struct ReadSchemaResponse {
+    pub schema_text: String,
+    pub read_at: super::ZedToken,
+}
+
+impl From<super::ReadSchemaResponse> for ReadSchemaResponse {
+    fn from(resp: super::ReadSchemaResponse) -> Self {
+        ReadSchemaResponse {
+            schema_text: resp.schema_text,
+            read_at: resp.read_at.unwrap(),
+        }
+    }
+}

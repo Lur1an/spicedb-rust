@@ -1,7 +1,7 @@
 use tokio_stream::{Stream, StreamExt};
 
 use crate::grpc::GrpcResult;
-use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
+use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb;
 use crate::spicedb::wrappers::{Consistency, ReadRelationshipsResponse};
 
