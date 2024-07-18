@@ -2,9 +2,7 @@ use crate::grpc::BearerTokenInterceptor;
 
 #[derive(Clone, Debug)]
 pub struct SpiceDBClient {
-    #[cfg(feature = "schema")]
-    schema_service_client: crate::schema::Client,
-    #[cfg(feature = "permission")]
+    schema_service_client: crate::schema::SchemaServiceClient,
     permission_service_client: crate::permission::PermissionServiceClient,
 }
 
@@ -26,7 +24,10 @@ impl SpiceDBClient {
             .await?;
         Ok(SpiceDBClient {
             #[cfg(feature = "schema")]
-            schema_service_client: crate::schema::Client::new(channel.clone(), interceptor.clone()),
+            schema_service_client: crate::schema::SchemaServiceClient::new(
+                channel.clone(),
+                interceptor.clone(),
+            ),
             #[cfg(feature = "permission")]
             permission_service_client: crate::permission::PermissionServiceClient::new(
                 channel.clone(),
@@ -39,24 +40,20 @@ impl SpiceDBClient {
         Box::leak(Box::new(self))
     }
 
-    #[cfg(feature = "schema")]
     #[inline]
-    pub fn schema_client(&self) -> &crate::schema::Client {
+    pub fn schema_client(&self) -> &crate::schema::SchemaServiceClient {
         &self.schema_service_client
     }
 
-    #[cfg(feature = "schema")]
-    pub fn into_schema_client(self) -> crate::schema::Client {
+    pub fn into_schema_client(self) -> crate::schema::SchemaServiceClient {
         self.schema_service_client
     }
 
-    #[cfg(feature = "permission")]
     #[inline]
     pub fn permission_client(&self) -> &crate::permission::PermissionServiceClient {
         &self.permission_service_client
     }
 
-    #[cfg(feature = "permission")]
     pub fn into_permission_client(self) -> crate::permission::PermissionServiceClient {
         self.permission_service_client
     }

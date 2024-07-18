@@ -12,9 +12,12 @@ use crate::spicedb::{self, object_reference};
 use crate::{Actor, Permission};
 use tonic::transport::Channel;
 
+pub type SpiceDBPermissionClient =
+    spicedb::permissions_service_client::PermissionsServiceClient<AuthenticatedChannel>;
+
 #[derive(Clone, Debug)]
 pub struct PermissionServiceClient {
-    inner: PermissionsServiceClient<AuthenticatedChannel>,
+    inner: SpiceDBPermissionClient,
 }
 
 impl PermissionServiceClient {
@@ -23,34 +26,34 @@ impl PermissionServiceClient {
         PermissionServiceClient { inner }
     }
 
-    pub fn raw(&self) -> PermissionsServiceClient<AuthenticatedChannel> {
+    pub fn raw(&self) -> SpiceDBPermissionClient {
         self.inner.clone()
     }
 
     pub fn create_relationships_request(&self) -> WriteRelationshipsRequest {
-        WriteRelationshipsRequest::new(self.clone())
+        WriteRelationshipsRequest::new(self.raw())
     }
 
-    pub fn delete_relationships_reuqest<R>(&self) -> DeleteRelationshipsRequest<R>
+    pub fn delete_relationships_request<R>(&self) -> DeleteRelationshipsRequest<R>
     where
         R: Resource,
     {
-        DeleteRelationshipsRequest::new(self.clone())
+        DeleteRelationshipsRequest::new(self.raw())
     }
 
     pub fn read_relationships_request(&self) -> ReadRelationshipsRequest {
-        ReadRelationshipsRequest::new(self.clone())
+        ReadRelationshipsRequest::new(self.raw())
     }
 
     pub fn check_permission_request(&self) -> CheckPermissionRequest {
-        CheckPermissionRequest::new(self.clone())
+        CheckPermissionRequest::new(self.raw())
     }
 
     pub fn lookup_resources_request<R>(&self) -> LookupResourcesRequest<R>
     where
         R: Resource,
     {
-        LookupResourcesRequest::new(self.clone())
+        LookupResourcesRequest::new(self.raw())
     }
 
     /// Shortcut for the most common use case of looking up resources, to quickly collect all ID's

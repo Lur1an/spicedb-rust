@@ -1,18 +1,18 @@
 use tokio_stream::{Stream, StreamExt};
 
 use crate::grpc::GrpcResult;
-use crate::permission::PermissionServiceClient;
+use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
 use crate::spicedb;
 use crate::spicedb::wrappers::{Consistency, ReadRelationshipsResponse};
 
 #[derive(Clone, Debug)]
 pub struct ReadRelationshipsRequest {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::ReadRelationshipsRequest,
 }
 
 impl ReadRelationshipsRequest {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::ReadRelationshipsRequest {
             ..Default::default()
         };
@@ -44,7 +44,6 @@ impl ReadRelationshipsRequest {
     ) -> GrpcResult<impl Stream<Item = GrpcResult<ReadRelationshipsResponse>>> {
         let resp = self
             .client
-            .inner
             .read_relationships(self.request)
             .await?
             .into_inner();

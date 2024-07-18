@@ -2,12 +2,17 @@
 
 An opinionated client for SpiceDB, built on top of the official gRPC API without the suck of using gRPC in rust.
 
+## Disclaimer
+API not stable yet, breaking changes are possible in the upcoming days.
+(Probably moving all API's to the top level struct)
+
+
 ## API
 The API offers builder interfaces for all gRPC requests that leverage the generic trait type system to 
 cut down on some request building boilerplate and potential errors/typos.
 Some of the most common requests are directly exposed as functions on the `Client` struct like `lookup_resources` directly into a `Vec<R::Id>` or a `check_permission` directly to a `bool`.
 
-More niche and extensive use cases are achieved by building the requests over the interface and parsing the response yourself.
+As an alternative to builder interfaces the client also exposes/will expose the methods directly with all arguments at once as parameters, if you intend to use the upcoming `mock` feature to not have to run a local `SpiceDB` instance in your tests it is recommended you do it this way.
 
 ## Type System
 The type system of this crate allows definition of rust structs with traits that mirror the schema imported into SpiceDB. This cuts down on potential typos and other bugs that can crawl into development when typing raw strings for relationships & permissions and makes it easier to build the quite complex gRPC requests with some compile-time checks.
@@ -140,3 +145,6 @@ let authorized = client
     )
     .await?;
 ```
+
+## Mocking
+TODO!

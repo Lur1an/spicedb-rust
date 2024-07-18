@@ -2,13 +2,13 @@ use futures::TryStreamExt;
 use tokio_stream::{Stream, StreamExt};
 
 use crate::grpc::GrpcResult;
-use crate::permission::PermissionServiceClient;
+use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
 use crate::spicedb::wrappers::{Consistency, LookupResourcesResponse};
 use crate::{spicedb, Actor, Permission, Resource};
 
 #[derive(Clone, Debug)]
 pub struct LookupResourcesRequest<R> {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::LookupResourcesRequest,
     _phantom: std::marker::PhantomData<R>,
 }
@@ -17,7 +17,7 @@ impl<R> LookupResourcesRequest<R>
 where
     R: Resource,
 {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::LookupResourcesRequest {
             resource_object_type: R::object_type().into(),
             ..Default::default()
@@ -84,7 +84,6 @@ where
         }
         let resp = self
             .client
-            .inner
             .lookup_resources(self.request)
             .await?
             .into_inner();

@@ -1,14 +1,14 @@
-use crate::permission::PermissionServiceClient;
+use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
 use crate::spicedb;
 
 #[derive(Clone, Debug)]
 pub struct LookupSubjectsRequest {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::LookupSubjectsRequest,
 }
 
 impl LookupSubjectsRequest {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::LookupSubjectsRequest {
             ..Default::default()
         };

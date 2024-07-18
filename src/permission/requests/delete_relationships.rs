@@ -1,7 +1,7 @@
 use self::spicedb::delete_relationships_response::DeletionProgress;
 use self::spicedb::precondition::Operation;
 use crate::entity::{Relation, Resource};
-use crate::permission::PermissionServiceClient;
+use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
 use crate::spicedb;
 
 #[derive(Clone, Debug)]
@@ -9,7 +9,7 @@ pub struct DeleteRelationshipsRequest<R>
 where
     R: Resource,
 {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::DeleteRelationshipsRequest,
     _phantom: std::marker::PhantomData<R>,
 }
@@ -18,7 +18,7 @@ impl<R> DeleteRelationshipsRequest<R>
 where
     R: Resource,
 {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         Self {
             client,
             request: spicedb::DeleteRelationshipsRequest {
@@ -114,7 +114,6 @@ where
     > {
         let resp = self
             .client
-            .inner
             .delete_relationships(self.request)
             .await?
             .into_inner();

@@ -5,9 +5,9 @@ mod lookup_subjects;
 mod read_relationships;
 mod write_relationships;
 
-pub use check_permission::*;
-pub use delete_relationships::*;
-pub use lookup_resources::*;
-pub use lookup_subjects::*;
-pub use read_relationships::*;
-pub use write_relationships::*;
+pub use check_permission::CheckPermissionRequest;
+pub use delete_relationships::DeleteRelationshipsRequest;
+pub use lookup_resources::LookupResourcesRequest;
+pub use lookup_subjects::LookupSubjectsRequest;
+pub use read_relationships::ReadRelationshipsRequest;
+pub use write_relationships::WriteRelationshipsRequest;

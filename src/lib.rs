@@ -8,10 +8,7 @@ mod entity;
 mod grpc;
 pub mod spicedb;
 
-#[cfg(feature = "permission")]
 mod permission;
-
-#[cfg(feature = "schema")]
 mod schema;
 
 pub use client::*;

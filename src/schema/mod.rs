@@ -1,11 +1,13 @@
 use crate::grpc::{AuthenticatedChannel, BearerTokenInterceptor};
 use crate::spicedb;
-use crate::spicedb::schema_service_client::SchemaServiceClient;
 use tonic::transport::Channel;
 
+pub type SpiceDBSchemaClient =
+    spicedb::schema_service_client::SchemaServiceClient<AuthenticatedChannel>;
+
 #[derive(Clone, Debug)]
-pub struct Client {
-    inner: SchemaServiceClient<AuthenticatedChannel>,
+pub struct SchemaServiceClient {
+    inner: SpiceDBSchemaClient,
 }
 
 #[derive(Clone, Debug)]
@@ -14,13 +16,16 @@ pub struct ReadSchemaResponse {
     pub read_at: spicedb::ZedToken,
 }
 
-impl Client {
+impl SchemaServiceClient {
     pub fn new(channel: Channel, interceptor: BearerTokenInterceptor) -> Self {
-        let inner = SchemaServiceClient::with_interceptor(channel, interceptor);
-        Client { inner }
+        let inner = spicedb::schema_service_client::SchemaServiceClient::with_interceptor(
+            channel,
+            interceptor,
+        );
+        SchemaServiceClient { inner }
     }
 
-    pub fn raw(&self) -> SchemaServiceClient<AuthenticatedChannel> {
+    pub fn raw(&self) -> SpiceDBSchemaClient {
         self.inner.clone()
     }
 

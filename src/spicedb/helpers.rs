@@ -1,7 +1,10 @@
-use crate::{Entity, Relation, Resource};
+use crate::{Entity, Relation, RelationshipOperation, Resource, WildCardId};
 
 use super::subject_filter::RelationFilter;
-use super::{ObjectReference, Precondition, RelationshipFilter, SubjectFilter, SubjectReference};
+use super::{
+    ObjectReference, Precondition, Relationship, RelationshipFilter, RelationshipUpdate,
+    SubjectFilter, SubjectReference,
+};
 
 pub fn subject_filter<S>(id: Option<S::Id>, relation: Option<S::Relations>) -> SubjectFilter
 where
@@ -124,5 +127,51 @@ where
     ObjectReference {
         object_type: E::object_type().into(),
         object_id: id.into(),
+    }
+}
+
+pub fn wildcard_relationship_update<S, R>(
+    operation: RelationshipOperation,
+    resource_id: impl Into<R::Id>,
+    relation: R::Relations,
+) -> RelationshipUpdate
+where
+    S: Entity,
+    R: Resource,
+{
+    let subject = subject_reference_raw(WildCardId, S::object_type(), None::<String>);
+    let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            resource: Some(resource),
+            relation: relation.name().to_owned(),
+            subject: Some(subject),
+            optional_caveat: None,
+        }),
+    }
+}
+
+pub fn relationship_update<S, R>(
+    operation: RelationshipOperation,
+    subject_id: impl Into<S::Id>,
+    subject_relation: Option<S::Relations>,
+    resource_id: impl Into<R::Id>,
+    relation: R::Relations,
+) -> RelationshipUpdate
+where
+    S: Entity,
+    R: Resource,
+{
+    let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
+    let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
+    RelationshipUpdate {
+        operation: operation as i32,
+        relationship: Some(Relationship {
+            resource: Some(resource),
+            relation: relation.name().to_owned(),
+            subject: Some(subject),
+            optional_caveat: None,
+        }),
     }
 }

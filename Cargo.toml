@@ -21,9 +21,7 @@ futures = "0.3.30"
 tonic-build = "0.10.2"
 
 [features]
-default = ["permission", "schema"]
-schema = []
-permission = []
+default = []
 
 [dev-dependencies]
 uuid = { version = "1.10.0", features = ["v4", "v7"] }

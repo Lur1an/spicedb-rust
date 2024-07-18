@@ -1,18 +1,18 @@
-use crate::permission::PermissionServiceClient;
-use crate::spicedb::{object_reference, subject_reference, subject_reference_raw};
-use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource, WildCardId};
+use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
+use crate::spicedb::{object_reference, subject_reference, wildcard_relationship_update};
+use crate::{spicedb, Caveat, Entity, Relation, RelationshipOperation, Resource};
 
 use self::spicedb::precondition::Operation;
-use self::spicedb::Precondition;
+use self::spicedb::{relationship_update, Precondition};
 
 #[derive(Clone, Debug)]
 pub struct WriteRelationshipsRequest {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::WriteRelationshipsRequest,
 }
 
 impl WriteRelationshipsRequest {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::WriteRelationshipsRequest {
             updates: vec![],
             optional_preconditions: vec![],
@@ -62,17 +62,13 @@ impl WriteRelationshipsRequest {
         S: Entity,
         R: Resource,
     {
-        let subject = subject_reference_raw(WildCardId, S::object_type(), None::<String>);
-        let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
-        self.request.updates.push(spicedb::RelationshipUpdate {
-            operation: operation as i32,
-            relationship: Some(spicedb::Relationship {
-                resource: Some(resource),
-                relation: relation.name().to_owned(),
-                subject: Some(subject),
-                optional_caveat: None,
-            }),
-        });
+        self.request
+            .updates
+            .push(wildcard_relationship_update::<S, R>(
+                operation,
+                resource_id,
+                relation,
+            ));
         self
     }
 
@@ -88,17 +84,13 @@ impl WriteRelationshipsRequest {
         S: Entity,
         R: Resource,
     {
-        let subject = subject_reference::<S>(Into::<S::Id>::into(subject_id), subject_relation);
-        let resource = object_reference::<R>(Into::<R::Id>::into(resource_id));
-        self.request.updates.push(spicedb::RelationshipUpdate {
-            operation: operation as i32,
-            relationship: Some(spicedb::Relationship {
-                resource: Some(resource),
-                relation: relation.name().to_owned(),
-                subject: Some(subject),
-                optional_caveat: None,
-            }),
-        });
+        self.request.updates.push(relationship_update::<S, R>(
+            operation,
+            subject_id,
+            subject_relation,
+            resource_id,
+            relation,
+        ));
         self
     }
 
@@ -136,7 +128,6 @@ impl WriteRelationshipsRequest {
     pub async fn send(mut self) -> Result<spicedb::ZedToken, tonic::Status> {
         let resp = self
             .client
-            .inner
             .write_relationships(self.request)
             .await?
             .into_inner();

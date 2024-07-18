@@ -1,16 +1,16 @@
 use crate::grpc::GrpcResult;
-use crate::permission::PermissionServiceClient;
+use crate::permission::{PermissionServiceClient, SpiceDBPermissionClient};
 use crate::spicedb;
 use crate::spicedb::wrappers::Consistency;
 
 #[derive(Clone, Debug)]
 pub struct CheckPermissionRequest {
-    client: PermissionServiceClient,
+    client: SpiceDBPermissionClient,
     request: spicedb::CheckPermissionRequest,
 }
 
 impl CheckPermissionRequest {
-    pub fn new(client: PermissionServiceClient) -> Self {
+    pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::CheckPermissionRequest {
             ..Default::default()
         };
@@ -59,7 +59,6 @@ impl CheckPermissionRequest {
         }
         let resp = self
             .client
-            .inner
             .check_permission(self.request)
             .await?
             .into_inner();
