@@ -2,10 +2,8 @@ use pretty_assertions::assert_eq;
 use spicedb_rust::spicedb::{
     relationship_update, subject_reference_raw, wildcard_relationship_update, SubjectReference,
 };
-use spicedb_rust::{
-    Actor, Entity, NoRelations, Permission, Relation, RelationshipOperation, Resource,
-    SpiceDBClient,
-};
+use spicedb_rust::{Actor, Entity, NoRelations, RelationshipOperation, Resource, SpiceDBClient};
+use strum::IntoStaticStr;
 use uuid::Uuid;
 
 struct User(Uuid);
@@ -33,18 +31,11 @@ impl Actor for User {
 
 struct Document;
 
+#[derive(IntoStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum DocumentPermission {
     Read,
     Write,
-}
-
-impl Permission for DocumentPermission {
-    fn name(&self) -> &'static str {
-        match self {
-            DocumentPermission::Read => "read",
-            DocumentPermission::Write => "write",
-        }
-    }
 }
 
 impl Entity for Document {
@@ -56,18 +47,11 @@ impl Entity for Document {
     }
 }
 
+#[derive(IntoStaticStr)]
+#[strum(serialize_all = "snake_case")]
 pub enum DocumentRelation {
     Reader,
     Writer,
-}
-
-impl Relation for DocumentRelation {
-    fn name(&self) -> &'static str {
-        match self {
-            DocumentRelation::Reader => "reader",
-            DocumentRelation::Writer => "writer",
-        }
-    }
 }
 
 impl Resource for Document {

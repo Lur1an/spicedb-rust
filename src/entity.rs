@@ -13,8 +13,11 @@ pub trait Entity: 'static {
     fn object_type() -> &'static str;
 }
 
+/// Represents possible relations to an `Entity`
+/// Easiest way to implement is implementing `Into<&'static str>` for your enum, which can builder
+/// achieved with `strum::IntoStaticStr`
 pub trait Relation {
-    fn name(&self) -> &'static str;
+    fn name(self) -> &'static str;
 }
 
 /// A resource is any `Entity` that also has `Permissions` associated
@@ -22,8 +25,29 @@ pub trait Resource: Entity {
     type Permissions: Permission;
 }
 
+/// Represents possible permissions on a `Resource`
+/// Easiest way to implement is implementing `Into<&'static str>` for your enum, which can builder
+/// achieved with `strum::IntoStaticStr`
 pub trait Permission {
-    fn name(&self) -> &'static str;
+    fn name(self) -> &'static str;
+}
+
+impl<S> Permission for S
+where
+    S: Into<&'static str>,
+{
+    fn name(self) -> &'static str {
+        self.into()
+    }
+}
+
+impl<S> Relation for S
+where
+    S: Into<&'static str>,
+{
+    fn name(self) -> &'static str {
+        self.into()
+    }
 }
 
 pub trait Caveat {
@@ -60,7 +84,7 @@ impl Caveat for NoCaveat {
 pub struct NoRelations;
 
 impl Relation for NoRelations {
-    fn name(&self) -> &'static str {
+    fn name(self) -> &'static str {
         unreachable!()
     }
 }
