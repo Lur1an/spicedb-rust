@@ -29,7 +29,7 @@ pub trait Caveat {
 }
 
 pub trait Actor {
-    fn into_subject(&self) -> spicedb::SubjectReference;
+    fn to_subject(&self) -> spicedb::SubjectReference;
 }
 
 pub struct NoCaveat;

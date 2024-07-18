@@ -57,7 +57,7 @@ impl PermissionServiceClient {
         R: Resource,
     {
         let mut request = self.check_permission_request();
-        request.with_subject(actor.into_subject());
+        request.with_subject(actor.to_subject());
         request.with_resource(object_reference::<R>(resource_id));
         request.with_permission(permission.name());
         let resp = request.send().await?;

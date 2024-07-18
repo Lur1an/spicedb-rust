@@ -24,7 +24,7 @@ impl Entity for User {
 impl Subject for User {}
 
 impl Actor for User {
-    fn into_subject(&self) -> SubjectReference {
+    fn to_subject(&self) -> SubjectReference {
         subject_reference_raw(self.0.clone(), User::object_type(), None::<String>)
     }
 }
