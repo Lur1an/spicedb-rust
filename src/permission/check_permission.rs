@@ -1,24 +1,32 @@
 use crate::grpc::GrpcResult;
 use crate::permission::SpiceDBPermissionClient;
-use crate::spicedb;
 use crate::spicedb::wrappers::Consistency;
+use crate::{spicedb, Permission, Resource};
 
-#[derive(Clone, Debug)]
-pub struct CheckPermissionRequest {
+#[derive(Debug)]
+pub struct CheckPermissionRequest<R> {
     client: SpiceDBPermissionClient,
     request: spicedb::CheckPermissionRequest,
+    _phantom: std::marker::PhantomData<R>,
 }
 
-impl CheckPermissionRequest {
+impl<R> CheckPermissionRequest<R>
+where
+    R: Resource,
+{
     pub fn new(client: SpiceDBPermissionClient) -> Self {
         let request = spicedb::CheckPermissionRequest {
             ..Default::default()
         };
-        CheckPermissionRequest { client, request }
+        CheckPermissionRequest {
+            client,
+            request,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
-    pub fn permission(&mut self, permission: impl Into<String>) -> &mut Self {
-        self.request.permission = permission.into();
+    pub fn permission(&mut self, permission: R::Permissions) -> &mut Self {
+        permission.name().clone_into(&mut self.request.permission);
         self
     }
 

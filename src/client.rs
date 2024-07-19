@@ -7,7 +7,7 @@ use crate::permission::{
 use crate::schema::SpiceDBSchemaClient;
 use crate::spicedb::wrappers::{Consistency, ReadSchemaResponse};
 use crate::spicedb::{self, object_reference};
-use crate::{Actor, Entity, Permission, Resource};
+use crate::{Actor, Entity, Resource};
 
 #[derive(Clone, Debug)]
 pub struct SpiceDBClient {
@@ -73,7 +73,10 @@ impl SpiceDBClient {
         ReadRelationshipsRequest::new(self.permission_service_client())
     }
 
-    pub fn check_permission_request(&self) -> CheckPermissionRequest {
+    pub fn check_permission_request<R>(&self) -> CheckPermissionRequest<R>
+    where
+        R: Resource,
+    {
         CheckPermissionRequest::new(self.permission_service_client())
     }
 
@@ -209,10 +212,10 @@ impl SpiceDBClient {
         A: Actor,
         R: Resource,
     {
-        let mut request = self.check_permission_request();
+        let mut request = self.check_permission_request::<R>();
         request.subject(actor.to_subject());
         request.resource(object_reference::<R>(resource_id));
-        request.permission(permission.name());
+        request.permission(permission);
         let resp = request.send().await?;
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
@@ -229,10 +232,10 @@ impl SpiceDBClient {
         A: Actor,
         R: Resource,
     {
-        let mut request = self.check_permission_request();
+        let mut request = self.check_permission_request::<R>();
         request.subject(actor.to_subject());
         request.resource(object_reference::<R>(resource_id));
-        request.permission(permission.name());
+        request.permission(permission);
         request.consistency(Consistency::AtLeastAsFresh(token));
         let resp = request.send().await?;
         Ok(resp.permissionship

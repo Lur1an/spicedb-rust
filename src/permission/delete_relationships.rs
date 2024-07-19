@@ -4,7 +4,7 @@ use crate::entity::{Relation, Resource};
 use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct DeleteRelationshipsRequest<R>
 where
     R: Resource,
