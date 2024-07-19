@@ -37,11 +37,11 @@ where
         self
     }
 
-    pub fn resource(&mut self, id: R::Id, permission: R::Permissions) -> &mut Self
+    pub fn resource(&mut self, id: impl Into<R::Id>, permission: R::Permissions) -> &mut Self
     where
         R: Resource,
     {
-        self.request.resource = Some(object_reference::<R>(id));
+        self.request.resource = Some(object_reference::<R>(id.into()));
         self.request.permission = permission.name().into();
         self
     }

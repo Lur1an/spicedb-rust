@@ -88,9 +88,9 @@ async fn example() {
 
     let actor = User::new(user_id);
     let authorized = client
-        .check_permission_at::<_, Document>(
+        .check_permission_at::<Document>(
             &actor,
-            "homework".to_owned(),
+            "homework",
             DocumentPermission::Write,
             token.clone(),
         )
@@ -103,9 +103,9 @@ async fn example() {
 
     let random_user_actor = User::new(Uuid::now_v7());
     let authorized = client
-        .check_permission_at::<_, Document>(
+        .check_permission_at::<Document>(
             &random_user_actor,
-            "manga".to_owned(),
+            "manga",
             DocumentPermission::Read,
             token.clone(),
         )
@@ -117,7 +117,7 @@ async fn example() {
     );
 
     let mut resource_ids = client
-        .lookup_resources_at::<_, Document>(&actor, DocumentPermission::Read, token.clone())
+        .lookup_resources_at::<Document>(&actor, DocumentPermission::Read, token.clone())
         .await
         .unwrap();
     let mut expected = vec!["homework", "manga"];
@@ -129,11 +129,7 @@ async fn example() {
     );
 
     let subject_ids = client
-        .lookup_subjects_at::<User, Document>(
-            "homework".to_owned(),
-            DocumentPermission::Write,
-            token.clone(),
-        )
+        .lookup_subjects_at::<User, Document>("homework", DocumentPermission::Write, token.clone())
         .await
         .unwrap();
     assert_eq!(subject_ids, vec![user_id]);
@@ -144,9 +140,9 @@ async fn example() {
         .unwrap();
 
     let authorized = client
-        .check_permission_at::<_, Document>(
+        .check_permission_at::<Document>(
             &random_user_actor,
-            "manga".to_owned(),
+            "manga",
             DocumentPermission::Read,
             new_token,
         )

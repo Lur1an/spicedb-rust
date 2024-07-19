@@ -1,7 +1,7 @@
 use crate::grpc::GrpcResult;
 use crate::permission::SpiceDBPermissionClient;
 use crate::spicedb::wrappers::Consistency;
-use crate::{spicedb, Permission, Resource};
+use crate::{spicedb, Actor, Permission, Resource};
 
 #[derive(Debug)]
 pub struct CheckPermissionRequest<R> {
@@ -43,6 +43,10 @@ where
     pub fn subject(&mut self, subject: spicedb::SubjectReference) -> &mut Self {
         self.request.subject = Some(subject);
         self
+    }
+
+    pub fn actor(&mut self, actor: &impl Actor) -> &mut Self {
+        self.subject(actor.to_subject())
     }
 
     pub fn resource(&mut self, resource: spicedb::ObjectReference) -> &mut Self {

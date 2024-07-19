@@ -15,21 +15,20 @@ pub struct SpiceDBClient {
     permission_service_client: SpiceDBPermissionClient,
 }
 
-#[cfg_attr(feature = "mock", mockall::automock)]
 impl SpiceDBClient {
     /// Reads the following env variables:
     /// - `ZED_TOKEN`
     /// - `ZED_ENDPOINT`
     pub async fn from_env() -> anyhow::Result<Self> {
-        let token = std::env::var("ZED_TOKEN")?;
-        let addr = std::env::var("ZED_ENDPOINT")?;
+        let token = std::env::var("SPICEDB_TOKEN")?;
+        let addr = std::env::var("SPICEDB_ENDPOINT")?;
         Self::new(addr, &token).await
     }
 
-    pub async fn new(addr: String, token: &str) -> anyhow::Result<Self> {
-        let token = format!("Bearer {}", token).parse()?;
+    pub async fn new(addr: impl Into<String>, token: impl AsRef<str>) -> anyhow::Result<Self> {
+        let token = format!("Bearer {}", token.as_ref()).parse()?;
         let interceptor = BearerTokenInterceptor::new(token);
-        let channel = tonic::transport::Channel::from_shared(addr)?
+        let channel = tonic::transport::Channel::from_shared(addr.into())?
             .connect()
             .await?;
         Ok(SpiceDBClient {
@@ -138,13 +137,12 @@ impl SpiceDBClient {
 
     /// Shortcut for the most common use case of looking up resources, to quickly collect all ID's
     /// returned in one call.
-    pub async fn lookup_resources<A, R>(
+    pub async fn lookup_resources<R>(
         &self,
-        actor: &A,
+        actor: &impl Actor,
         permission: R::Permissions,
     ) -> GrpcResult<Vec<R::Id>>
     where
-        A: Actor,
         R: Resource,
     {
         let mut request = self.lookup_resources_request::<R>();
@@ -153,14 +151,13 @@ impl SpiceDBClient {
         request.send_collect_ids().await
     }
 
-    pub async fn lookup_resources_at<A, R>(
+    pub async fn lookup_resources_at<R>(
         &self,
-        actor: &A,
+        actor: &impl Actor,
         permission: R::Permissions,
         token: spicedb::ZedToken,
     ) -> GrpcResult<Vec<R::Id>>
     where
-        A: Actor,
         R: Resource,
     {
         let mut request = self.lookup_resources_request::<R>();
@@ -172,7 +169,7 @@ impl SpiceDBClient {
 
     pub async fn lookup_subjects<S, R>(
         &self,
-        id: R::Id,
+        id: impl Into<R::Id>,
         permission: R::Permissions,
     ) -> GrpcResult<Vec<S::Id>>
     where
@@ -186,7 +183,7 @@ impl SpiceDBClient {
 
     pub async fn lookup_subjects_at<S, R>(
         &self,
-        id: R::Id,
+        id: impl Into<R::Id>,
         permission: R::Permissions,
         token: spicedb::ZedToken,
     ) -> GrpcResult<Vec<S::Id>>
@@ -202,39 +199,37 @@ impl SpiceDBClient {
 
     /// Shortcut for the most common use case of checking a permission for an actor in the system
     /// on a specific resource `R` with default consistency.
-    pub async fn check_permission<A, R>(
+    pub async fn check_permission<R>(
         &self,
-        actor: &A,
-        resource_id: R::Id,
+        actor: &impl Actor,
+        resource_id: impl Into<R::Id>,
         permission: R::Permissions,
     ) -> GrpcResult<bool>
     where
-        A: Actor,
         R: Resource,
     {
         let mut request = self.check_permission_request::<R>();
         request.subject(actor.to_subject());
-        request.resource(object_reference::<R>(resource_id));
+        request.resource(object_reference::<R>(resource_id.into()));
         request.permission(permission);
         let resp = request.send().await?;
         Ok(resp.permissionship
             == spicedb::check_permission_response::Permissionship::HasPermission as i32)
     }
 
-    pub async fn check_permission_at<A, R>(
+    pub async fn check_permission_at<R>(
         &self,
-        actor: &A,
-        resource_id: R::Id,
+        actor: &impl Actor,
+        resource_id: impl Into<R::Id>,
         permission: R::Permissions,
         token: spicedb::ZedToken,
     ) -> GrpcResult<bool>
     where
-        A: Actor,
         R: Resource,
     {
         let mut request = self.check_permission_request::<R>();
         request.subject(actor.to_subject());
-        request.resource(object_reference::<R>(resource_id));
+        request.resource(object_reference::<R>(resource_id.into()));
         request.permission(permission);
         request.consistency(Consistency::AtLeastAsFresh(token));
         let resp = request.send().await?;
