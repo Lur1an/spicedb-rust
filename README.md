@@ -3,9 +3,7 @@
 An opinionated client for SpiceDB, built on top of the official gRPC API without the suck of using gRPC in rust.
 
 ## Disclaimer
-API not stable yet, breaking changes are possible in the upcoming days.
-(Probably moving all API's to the top level struct)
-
+API not stable yet, breaking changes are possible
 
 ## API
 The API offers builder interfaces for all gRPC requests that leverage the generic trait type system to 
