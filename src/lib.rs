@@ -11,11 +11,9 @@ pub mod spicedb;
 mod permission;
 mod schema;
 
-#[cfg(feature = "mock")]
-pub use client::MockSpiceDBClient as SpiceDBClient;
-
-#[cfg(not(feature = "mock"))]
 pub use client::SpiceDBClient;
+
+pub type Error = tonic::Status;
 
 pub use strum::IntoStaticStr;
 
