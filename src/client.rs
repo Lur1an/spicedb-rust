@@ -25,6 +25,12 @@ impl SpiceDBClient {
         Self::new(addr, &token).await
     }
 
+    #[cfg(feature = "integration-test")]
+    pub async fn new_isolated(addr: impl Into<String>) -> anyhow::Result<Self> {
+        let token = uuid::Uuid::new_v4().to_string();
+        Self::new(addr, token).await
+    }
+
     pub async fn new(addr: impl Into<String>, token: impl AsRef<str>) -> anyhow::Result<Self> {
         let token = format!("Bearer {}", token.as_ref()).parse()?;
         let interceptor = BearerTokenInterceptor::new(token);

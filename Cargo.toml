@@ -22,6 +22,7 @@ tonic-build = "0.10.2"
 
 [features]
 default = []
+integration-test = []
 
 [dev-dependencies]
 uuid = { version = "1.10.0", features = ["v4", "v7"] }

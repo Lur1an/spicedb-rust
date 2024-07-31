@@ -60,7 +60,7 @@ impl Resource for Document {
 
 #[tokio::test]
 async fn example() {
-    let client = SpiceDBClient::new("http://localhost:50051".to_owned(), "randomkey")
+    let client = SpiceDBClient::new_isolated("http://localhost:50051")
         .await
         .unwrap();
     let schema = include_str!("schema.zed");

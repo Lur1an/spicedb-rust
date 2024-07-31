@@ -69,7 +69,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
 
       - name: Start SpiceDB
-        run: docker compose up -d
+        uses: "authzed/action-spicedb@v1"
+        with:
+          version: "latest"
     
       - name: Run tests
-        run: cargo nextest run
+        run: cargo nextest run --features integration-test
