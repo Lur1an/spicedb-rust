@@ -3,6 +3,7 @@ name = "spicedb-rust"
 version = "0.3.2"
 edition = "2021"
 description = "A client for spicedb"
+keywords = ["spicedb", "authzed", "authorization"]
 license = "MIT"
 
 [dependencies]
