@@ -4,6 +4,7 @@ version = "0.3.3"
 edition = "2021"
 description = "A client for spicedb"
 keywords = ["spicedb", "authzed", "authorization"]
+repository = "https://github.com/Lur1an/spicedb-rust"
 license = "MIT"
 
 [dependencies]
