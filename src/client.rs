@@ -25,7 +25,7 @@ impl SpiceDBClient {
         Self::new(addr, &token).await
     }
 
-    #[cfg(feature = "integration-test")]
+    #[cfg(any(feature = "integration-test", test))]
     pub async fn new_isolated(addr: impl Into<String>) -> anyhow::Result<Self> {
         let token = uuid::Uuid::new_v4().to_string();
         Self::new(addr, token).await
@@ -128,8 +128,8 @@ impl SpiceDBClient {
         preconditions: P,
     ) -> GrpcResult<spicedb::ZedToken>
     where
-        R: IntoIterator<Item = spicedb::RelationshipUpdate> + 'static,
-        P: IntoIterator<Item = spicedb::Precondition> + 'static,
+        R: IntoIterator<Item = spicedb::RelationshipUpdate>,
+        P: IntoIterator<Item = spicedb::Precondition>,
     {
         let mut request = self.create_relationships_request();
         for precondition in preconditions {
